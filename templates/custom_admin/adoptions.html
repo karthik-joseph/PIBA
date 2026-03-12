@@ -1,0 +1,93 @@
+{% extends 'custom_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Adoption Management{% endblock %}
+{% block page_title %}Adoption Management{% endblock %}
+{% block page_subtitle %}Review and manage pet adoption requests{% endblock %}
+
+{% block content %}
+<div>
+
+    <div id="adoptions-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
+    <div id="adoptions-empty" class="hidden text-center py-16">
+        <i data-lucide="heart" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <p class="text-gray-500">No adoption requests found</p>
+    </div>
+    <div id="adoptions-list" class="hidden space-y-4"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ADOPT_STATUS_CLR = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    under_review: 'bg-secondary-100 text-secondary-700',
+    approved: 'bg-success-100 text-success-700',
+    rejected: 'bg-red-100 text-red-600',
+    completed: 'bg-purple-100 text-purple-700',
+};
+
+async function loadAdoptions() {
+    try {
+        const response = await API.get('/admin-panel/api/adoptions/');
+        const data = await response.json();
+        const requests = data.results || data || [];
+        
+        document.getElementById('adoptions-loading').classList.add('hidden');
+        
+        if (!requests.length) {
+            document.getElementById('adoptions-empty').classList.remove('hidden');
+            return;
+        }
+        
+        document.getElementById('adoptions-list').classList.remove('hidden');
+        document.getElementById('adoptions-list').innerHTML = requests.map(req => {
+            const sc = ADOPT_STATUS_CLR[req.status] || 'bg-gray-100 text-gray-700';
+            return `
+                <div class="bg-white rounded-2xl shadow-soft p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            <img src="${req.pet?.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" 
+                                 alt="${req.pet?.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="font-bold text-dark-800">${req.pet?.name || 'Pet'}</h3>
+                                <span class="text-xs px-2 py-1 rounded-full font-semibold ${sc} capitalize">${req.status.replace('_', ' ')}</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Applicant: <strong>${req.applicant_name}</strong> · ${new Date(req.submitted_at).toLocaleDateString('en-IN')}</p>
+                            <p class="text-sm text-gray-500 mt-1">Reason: ${req.reason?.slice(0, 100)}${req.reason?.length > 100 ? '...' : ''}</p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            ${req.status === 'pending' ? `
+                                <button onclick="updateAdoption(${req.id}, 'approved')" class="px-3 py-1.5 bg-success-100 hover:bg-success-200 text-success-700 text-xs font-semibold rounded-lg">
+                                    Approve
+                                </button>
+                                <button onclick="updateAdoption(${req.id}, 'rejected')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg">
+                                    Reject
+                                </button>
+                            ` : ''}
+                            <a href="/adoption/requests/${req.id}/" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg text-center">View</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    } catch {
+        document.getElementById('adoptions-loading').classList.add('hidden');
+    }
+}
+
+async function updateAdoption(id, status) {
+    try {
+        const response = await API.fetch(`/api/v1/adoption/requests/${id}/update/`, {
+            method: 'PATCH', body: JSON.stringify({ status })
+        });
+        if (response.ok) { showToast(`Adoption request ${status}`, 'success'); loadAdoptions(); }
+    } catch { showToast('Failed to update', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadAdoptions);
+</script>
+{% endblock %}

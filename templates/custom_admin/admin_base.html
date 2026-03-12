@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PIBA Admin Panel - Manage your platform">
+    <title>{% block title %}Admin Panel{% endblock %} | PIBA</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo/piba_logo_200x200.png' %}">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        primary: ['Inter', 'sans-serif'],
+                        logo: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50:  '#FFF4EC',
+                            100: '#FFE4CF',
+                            200: '#FFC79E',
+                            300: '#FFA969',
+                            400: '#FF8C42',
+                            500: '#F97316',
+                            600: '#E4600C',
+                            700: '#C44E06',
+                            800: '#9A3D05',
+                            900: '#7A2F03',
+                        },
+                        secondary: {
+                            50:  '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            300: '#93C5FD',
+                            400: '#60A5FA',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                            800: '#1E40AF',
+                            900: '#1E3A8A',
+                        },
+                        success: {
+                            50:  '#ECFDF5',
+                            100: '#D1FAE5',
+                            200: '#A7F3D0',
+                            300: '#6EE7B7',
+                            400: '#34D399',
+                            500: '#10B981',
+                            600: '#059669',
+                            700: '#047857',
+                        },
+                        dark: {
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                            600: '#475569',
+                        },
+                        sidebar: {
+                            DEFAULT: '#1a1f2e',
+                            hover: '#252d3f',
+                            active: '#2d3748',
+                        }
+                    },
+                    boxShadow: {
+                        soft: '0 10px 25px rgba(0,0,0,0.05)',
+                        sidebar: '4px 0 20px rgba(0,0,0,0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Sidebar */
+        #admin-sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0f172a 0%, #1a1f2e 100%);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        #admin-sidebar.collapsed {
+            transform: translateX(-260px);
+            margin-left: -260px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.25rem;
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin: 0.15rem 0.75rem;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.07);
+            color: #fff;
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(249,115,22,0.25) 0%, rgba(249,115,22,0.1) 100%);
+            color: #f97316;
+            border-left: 3px solid #f97316;
+            margin-left: 0.5rem;
+        }
+
+        .sidebar-link.active i {
+            color: #f97316;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #475569;
+            padding: 1rem 1.75rem 0.4rem;
+        }
+
+        /* Main content area */
+        #admin-main {
+            flex: 1;
+            min-height: 100vh;
+            background: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        /* Topbar */
+        #admin-topbar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #F97316;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast */
+        .toast {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Card */
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+
+        /* Mobile sidebar overlay */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 30;
+        }
+
+        @media (max-width: 768px) {
+            #admin-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 40;
+                transform: translateX(-260px);
+                margin-left: 0;
+            }
+            #admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
+
+        /* Stat card gradients */
+        .stat-gradient-1 { background: linear-gradient(135deg, #F97316, #FB923C); }
+        .stat-gradient-2 { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
+        .stat-gradient-3 { background: linear-gradient(135deg, #10B981, #34D399); }
+        .stat-gradient-4 { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+        .stat-gradient-5 { background: linear-gradient(135deg, #F43F5E, #FB7185); }
+
+        /* Badge styles */
+        .badge-success { background: #D1FAE5; color: #047857; }
+        .badge-warning { background: #FEF3C7; color: #B45309; }
+        .badge-danger  { background: #FEE2E2; color: #B91C1C; }
+        .badge-info    { background: #DBEAFE; color: #1D4ED8; }
+        .badge-gray    { background: #F1F5F9; color: #475569; }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-100">
+
+<!-- Toast container -->
+<div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-2"></div>
+
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="flex min-h-screen">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside id="admin-sidebar">
+        <!-- Logo -->
+        <div class="px-6 py-5 border-b border-white/10">
+            <a href="{% url 'custom_admin:dashboard' %}" class="flex items-center gap-3">
+                <img src="{% static 'images/logo/piba_logo_200x200.png' %}" alt="PIBA" class="w-9 h-9 rounded-xl">
+                <div>
+                    <p class="text-white font-bold text-lg font-logo leading-none">PIBA</p>
+                    <p class="text-orange-400 text-[10px] font-semibold uppercase tracking-widest">Admin Panel</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Nav -->
+        <nav class="py-4 overflow-y-auto" style="max-height: calc(100vh - 200px);">
+
+            <p class="sidebar-section-title">Main</p>
+
+            <a href="{% url 'custom_admin:dashboard' %}" id="nav-dashboard"
+               class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i>
+                Dashboard
+            </a>
+
+            <p class="sidebar-section-title">Management</p>
+
+            <a href="{% url 'custom_admin:users' %}" id="nav-users"
+               class="sidebar-link {% if request.resolver_match.url_name == 'users' %}active{% endif %}">
+                <i data-lucide="users" class="w-4 h-4 flex-shrink-0"></i>
+                Users
+            </a>
+
+            <a href="{% url 'custom_admin:sellers' %}" id="nav-sellers"
+               class="sidebar-link {% if request.resolver_match.url_name == 'sellers' %}active{% endif %}">
+                <i data-lucide="store" class="w-4 h-4 flex-shrink-0"></i>
+                Sellers
+            </a>
+
+            <a href="{% url 'custom_admin:pets' %}" id="nav-pets"
+               class="sidebar-link {% if 'pet' in request.resolver_match.url_name %}active{% endif %}">
+                <i data-lucide="paw-print" class="w-4 h-4 flex-shrink-0"></i>
+                Pets / Products
+            </a>
+
+            <a href="{% url 'custom_admin:pet_add' %}" id="nav-pet-add"
+               class="sidebar-link {% if request.resolver_match.url_name == 'pet_add' %}active{% endif %}" style="padding-left:2.5rem;">
+                <i data-lucide="plus-circle" class="w-4 h-4 flex-shrink-0"></i>
+                Add New Pet
+            </a>
+
+            <a href="{% url 'custom_admin:orders' %}" id="nav-orders"
+               class="sidebar-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+                <i data-lucide="shopping-bag" class="w-4 h-4 flex-shrink-0"></i>
+                Orders
+            </a>
+
+            <a href="{% url 'custom_admin:adoptions' %}" id="nav-adoptions"
+               class="sidebar-link {% if request.resolver_match.url_name == 'adoptions' %}active{% endif %}">
+                <i data-lucide="heart" class="w-4 h-4 flex-shrink-0"></i>
+                Adoptions
+            </a>
+
+            <a href="{% url 'custom_admin:reviews' %}" id="nav-reviews"
+               class="sidebar-link {% if request.resolver_match.url_name == 'reviews' %}active{% endif %}">
+                <i data-lucide="star" class="w-4 h-4 flex-shrink-0"></i>
+                Reviews
+            </a>
+
+            <a href="{% url 'custom_admin:analytics' %}" id="nav-analytics"
+               class="sidebar-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0"></i>
+                Analytics
+            </a>
+
+            <p class="sidebar-section-title">System</p>
+
+            <a href="/django-admin/" target="_blank" class="sidebar-link">
+                <i data-lucide="settings-2" class="w-4 h-4 flex-shrink-0"></i>
+                Django Admin
+                <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-50"></i>
+            </a>
+
+            <a href="/" target="_blank" class="sidebar-link">
+                <i data-lucide="globe" class="w-4 h-4 flex-shrink-0"></i>
+                Visit Website
+                <i data-lucide="external-link" class="w-3 h-3 ml-auto opacity-50"></i>
+            </a>
+
+        </nav>
+
+        <!-- User section at bottom -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm">
+                    {{ request.user.first_name|first|upper|default:request.user.username|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white text-sm font-semibold truncate">{{ request.user.get_full_name|default:request.user.username }}</p>
+                    <p class="text-slate-400 text-xs truncate">Administrator</p>
+                </div>
+            </div>
+            <a href="/logout/" style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 0.75rem; border-radius:8px; color:#94a3b8; font-size:0.8125rem; font-weight:500; transition:color 0.2s; text-decoration:none;" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='#94a3b8'">
+                <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0"></i>
+                Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN AREA ===== -->
+    <div id="admin-main" class="flex flex-col">
+
+        <!-- Topbar -->
+        <header id="admin-topbar">
+            <!-- Mobile menu button -->
+            <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition">
+                <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
+            </button>
+
+            <!-- Page Title -->
+            <div class="flex-1">
+                <h1 class="text-base font-bold text-dark-800">{% block page_title %}Dashboard{% endblock %}</h1>
+                <p class="text-xs text-gray-500">{% block page_subtitle %}PIBA Admin Panel{% endblock %}</p>
+            </div>
+
+            <!-- Right actions -->
+            <div class="flex items-center gap-3">
+                <a href="/django-admin/" target="_blank"
+                   class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-dark-800 hover:bg-dark-700 text-white text-xs font-semibold rounded-lg transition">
+                    <i data-lucide="settings-2" class="w-3.5 h-3.5"></i>
+                    Django Admin
+                </a>
+                <a href="/" target="_blank"
+                   class="p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700">
+                    <i data-lucide="globe" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-6">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+</div>
+
+<!-- Base JS -->
+<script>
+    // JWT Auth helpers
+    const AUTH = {
+        getToken: () => localStorage.getItem('access_token'),
+        getRefresh: () => localStorage.getItem('refresh_token'),
+        setTokens: (access, refresh) => {
+            localStorage.setItem('access_token', access);
+            localStorage.setItem('refresh_token', refresh);
+        },
+        clearTokens: () => {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+        }
+    };
+
+    // API Helper
+    const API = {
+        async fetch(url, options = {}) {
+            const token = AUTH.getToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            try {
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) {
+                    const refreshed = await this.refreshToken();
+                    if (refreshed) {
+                        headers['Authorization'] = `Bearer ${AUTH.getToken()}`;
+                        return fetch(url, { ...options, headers });
+                    } else {
+                        AUTH.clearTokens();
+                        window.location.href = '/admin-panel/login/';
+                        return null;
+                    }
+                }
+                return response;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        },
+        async refreshToken() {
+            const refresh = AUTH.getRefresh();
+            if (!refresh) return false;
+            try {
+                const response = await fetch('/api/v1/auth/token/refresh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access_token', data.access);
+                    return true;
+                }
+                return false;
+            } catch { return false; }
+        },
+        get: (url) => API.fetch(url),
+        post: (url, data) => API.fetch(url, { method: 'POST', body: JSON.stringify(data) }),
+        patch: (url, data) => API.fetch(url, { method: 'PATCH', body: JSON.stringify(data) }),
+        put: (url, data) => API.fetch(url, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (url) => API.fetch(url, { method: 'DELETE' }),
+    };
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const colors = {
+            success: 'bg-emerald-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500',
+            warning: 'bg-amber-500'
+        };
+        const icons = {
+            success: 'check-circle',
+            error: 'x-circle',
+            info: 'info',
+            warning: 'alert-triangle'
+        };
+        const toast = document.createElement('div');
+        toast.className = `toast ${colors[type]} text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 min-w-[280px] max-w-[360px]`;
+        toast.innerHTML = `
+            <i data-lucide="${icons[type]}" class="w-4 h-4 flex-shrink-0"></i>
+            <span class="flex-1 text-sm font-medium">${message}</span>
+            <button onclick="this.parentElement.remove()" class="hover:opacity-80 ml-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        `;
+        container.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Sidebar toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (window.innerWidth < 768) {
+            sidebar.classList.toggle('mobile-open');
+            overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
+        } else {
+            sidebar.classList.toggle('collapsed');
+        }
+    }
+
+    function closeSidebar() {
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.remove('mobile-open');
+        overlay.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+    });
+</script>
+
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>

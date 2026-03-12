@@ -1,0 +1,380 @@
+{% extends 'custom_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}{% if pet %}Edit Pet{% else %}Add New Pet{% endif %}{% endblock %}
+{% block page_title %}{% if pet %}Edit Pet — {{ pet.name }}{% else %}Add New Pet{% endif %}{% endblock %}
+{% block page_subtitle %}{% if pet %}Update pet listing details{% else %}Create a new pet listing{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="max-w-3xl">
+
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-5">
+        <a href="{% url 'custom_admin:dashboard' %}" class="hover:text-primary-600">Dashboard</a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <a href="{% url 'custom_admin:pets' %}" class="hover:text-primary-600">Pets</a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <span class="text-dark-700 font-medium">{% if pet %}Edit{% else %}Add New{% endif %}</span>
+    </div>
+
+    <!-- Form Card -->
+    <div class="admin-card p-6">
+        <div id="form-error" class="hidden mb-5 bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-xl flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span id="form-error-text"></span>
+        </div>
+
+        <form id="pet-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Section: Basic Info -->
+            <div class="mb-6">
+                <h3 class="text-sm font-bold text-dark-700 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-primary-500"></i>
+                    Basic Information
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Pet Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="pet-name" required
+                               value="{{ pet.name|default:'' }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition text-sm"
+                               placeholder="e.g. Buddy, Luna, Charlie">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Category <span class="text-red-500">*</span></label>
+                        <select name="category" id="pet-category" required
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="">Select category...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Breed</label>
+                        <select name="breed" id="pet-breed"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="">Select breed (optional)...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Seller <span class="text-red-500">*</span></label>
+                        <select name="seller" id="pet-seller" required
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="">Select seller...</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Listing Type</label>
+                        <select name="listing_type" id="pet-listing-type"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="sale" {% if pet.listing_type == 'sale' %}selected{% endif %}>For Sale</option>
+                            <option value="adoption" {% if pet.listing_type == 'adoption' %}selected{% endif %}>For Adoption</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Price (₹) <span class="text-red-500">*</span></label>
+                        <input type="number" name="price" id="pet-price" required min="0" step="0.01"
+                               value="{{ pet.price|default:'' }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition text-sm"
+                               placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Gender</label>
+                        <select name="gender" id="pet-gender"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="male" {% if pet.gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if pet.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="unknown" {% if not pet or pet.gender == 'unknown' %}selected{% endif %}>Unknown</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Age (Years)</label>
+                        <input type="number" name="age_years" min="0" max="30"
+                               value="{{ pet.age_years|default:0 }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
+                               placeholder="0">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Age (Months)</label>
+                        <input type="number" name="age_months" min="0" max="11"
+                               value="{{ pet.age_months|default:0 }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
+                               placeholder="0">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Color</label>
+                        <input type="text" name="color" value="{{ pet.color|default:'' }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
+                               placeholder="e.g. Golden, Black & White">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Weight (kg)</label>
+                        <input type="number" name="weight" step="0.1" min="0"
+                               value="{{ pet.weight|default:'' }}"
+                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
+                               placeholder="e.g. 5.2">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Description</label>
+                        <textarea name="description" rows="4"
+                                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm resize-none"
+                                  placeholder="Describe the pet's personality, behaviour, story...">{{ pet.description|default:'' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Health -->
+            <div class="mb-6">
+                <h3 class="text-sm font-bold text-dark-700 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                    <i data-lucide="heart-pulse" class="w-4 h-4 text-red-500"></i>
+                    Health Information
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Health Status</label>
+                        <select name="health_status"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="excellent" {% if pet.health_status == 'excellent' %}selected{% endif %}>Excellent</option>
+                            <option value="good" {% if not pet or pet.health_status == 'good' %}selected{% endif %}>Good</option>
+                            <option value="fair" {% if pet.health_status == 'fair' %}selected{% endif %}>Fair</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-3 justify-center">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_vaccinated" id="is-vaccinated"
+                                   {% if pet.is_vaccinated %}checked{% endif %}
+                                   class="w-4 h-4 rounded text-primary-500 border-gray-300">
+                            <span class="text-sm font-medium text-dark-700">Vaccinated</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_neutered" id="is-neutered"
+                                   {% if pet.is_neutered %}checked{% endif %}
+                                   class="w-4 h-4 rounded text-primary-500 border-gray-300">
+                            <span class="text-sm font-medium text-dark-700">Neutered / Spayed</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Status Flags -->
+            <div class="mb-6">
+                <h3 class="text-sm font-bold text-dark-700 uppercase tracking-wide border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                    <i data-lucide="toggle-right" class="w-4 h-4 text-blue-500"></i>
+                    Listing Status
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Status</label>
+                        <select name="status"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
+                            <option value="available" {% if not pet or pet.status == 'available' %}selected{% endif %}>Available</option>
+                            <option value="reserved" {% if pet.status == 'reserved' %}selected{% endif %}>Reserved</option>
+                            <option value="sold" {% if pet.status == 'sold' %}selected{% endif %}>Sold</option>
+                            <option value="adopted" {% if pet.status == 'adopted' %}selected{% endif %}>Adopted</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-3 justify-center">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_approved" id="is-approved"
+                                   {% if pet.is_approved %}checked{% endif %}
+                                   class="w-4 h-4 rounded text-primary-500 border-gray-300">
+                            <span class="text-sm font-medium text-dark-700">Approved</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_featured" id="is-featured"
+                                   {% if pet.is_featured %}checked{% endif %}
+                                   class="w-4 h-4 rounded text-primary-500 border-gray-300">
+                            <span class="text-sm font-medium text-dark-700">Featured</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_active" id="is-active"
+                                   {% if not pet or pet.is_active %}checked{% endif %}
+                                   class="w-4 h-4 rounded text-primary-500 border-gray-300">
+                            <span class="text-sm font-medium text-dark-700">Active</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
+                <button type="submit" id="submit-btn"
+                        class="flex items-center gap-2 px-6 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span id="submit-text">{% if pet %}Update Pet{% else %}Create Pet{% endif %}</span>
+                </button>
+                <a href="{% url 'custom_admin:pets' %}"
+                   class="px-6 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium rounded-xl transition text-sm">
+                    Cancel
+                </a>
+                {% if pet %}
+                <button type="button" id="delete-btn"
+                        class="ml-auto flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition text-sm"
+                        onclick="deletePet()">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Delete Pet
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const PET_ID = {{ pet.id|default:'null' }};
+
+// Load categories
+async function loadCategories() {
+    try {
+        const r = await API.get('/admin-panel/api/categories/');
+        const cats = await r.json();
+        const sel = document.getElementById('pet-category');
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (c.id === {{ pet.category_id|default:'null' }}) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        // Load breeds after category is set
+        if (sel.value) loadBreeds(sel.value);
+    } catch(e) { console.error(e); }
+}
+
+// Load breeds for a category
+async function loadBreeds(categoryId) {
+    const sel = document.getElementById('pet-breed');
+    sel.innerHTML = '<option value="">Select breed (optional)...</option>';
+    if (!categoryId) return;
+    try {
+        const r = await API.get(`/admin-panel/api/breeds/?category=${categoryId}`);
+        const breeds = await r.json();
+        breeds.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = b.name;
+            if (b.id === {{ pet.breed_id|default:'null' }}) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    } catch(e) { console.error(e); }
+}
+
+document.getElementById('pet-category').addEventListener('change', function() {
+    loadBreeds(this.value);
+});
+
+// Load sellers
+async function loadSellers() {
+    try {
+        const r = await API.get('/admin-panel/api/sellers/');
+        const sellers = await r.json();
+        const sel = document.getElementById('pet-seller');
+        sellers.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.business_name;
+            if (s.id === {{ pet.seller_id|default:'null' }}) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    } catch(e) { console.error(e); }
+}
+
+// Form submit
+document.getElementById('pet-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('submit-text');
+    const errorDiv = document.getElementById('form-error');
+    const errorText = document.getElementById('form-error-text');
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div><span>Saving...</span>';
+    errorDiv.classList.add('hidden');
+
+    const form = new FormData(this);
+    const payload = {
+        name: form.get('name'),
+        category: parseInt(form.get('category')),
+        seller: parseInt(form.get('seller')),
+        price: parseFloat(form.get('price')),
+        listing_type: form.get('listing_type'),
+        status: form.get('status'),
+        gender: form.get('gender'),
+        age_years: parseInt(form.get('age_years')) || 0,
+        age_months: parseInt(form.get('age_months')) || 0,
+        color: form.get('color') || '',
+        weight: form.get('weight') ? parseFloat(form.get('weight')) : null,
+        description: form.get('description') || '',
+        health_status: form.get('health_status'),
+        is_vaccinated: document.getElementById('is-vaccinated').checked,
+        is_neutered: document.getElementById('is-neutered').checked,
+        is_approved: document.getElementById('is-approved').checked,
+        is_featured: document.getElementById('is-featured').checked,
+        is_active: document.getElementById('is-active').checked,
+    };
+    if (form.get('breed')) payload.breed = parseInt(form.get('breed'));
+
+    try {
+        let response;
+        if (PET_ID) {
+            response = await API.patch(`/admin-panel/api/pets/${PET_ID}/detail/`, payload);
+        } else {
+            response = await API.post('/admin-panel/api/pets/create/', payload);
+        }
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast(PET_ID ? 'Pet updated!' : 'Pet created!', 'success');
+            setTimeout(() => window.location.href = '/admin-panel/pets/', 1000);
+        } else {
+            const msg = Object.values(data).flat().join(', ') || 'Failed to save.';
+            errorText.textContent = msg;
+            errorDiv.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>${PET_ID ? 'Update Pet' : 'Create Pet'}</span>`;
+            lucide.createIcons();
+        }
+    } catch(err) {
+        errorText.textContent = 'Network error. Please try again.';
+        errorDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>${PET_ID ? 'Update Pet' : 'Create Pet'}</span>`;
+        lucide.createIcons();
+    }
+});
+
+{% if pet %}
+async function deletePet() {
+    if (!confirm('Are you sure you want to delete this pet? This action cannot be undone.')) return;
+    try {
+        const r = await API.delete(`/admin-panel/api/pets/${PET_ID}/detail/`);
+        if (r.ok) {
+            showToast('Pet deleted.', 'success');
+            setTimeout(() => window.location.href = '/admin-panel/pets/', 800);
+        } else {
+            showToast('Failed to delete pet.', 'error');
+        }
+    } catch { showToast('Error deleting pet.', 'error'); }
+}
+{% endif %}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+    loadSellers();
+});
+</script>
+{% endblock %}

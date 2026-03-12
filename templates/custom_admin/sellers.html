@@ -1,0 +1,138 @@
+{% extends 'custom_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Seller Management{% endblock %}
+{% block page_title %}Seller Management{% endblock %}
+{% block page_subtitle %}Verify and manage all sellers{% endblock %}
+
+{% block content %}
+<div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6">
+        <button onclick="filterSellers('')" class="seller-tab px-4 py-2 rounded-xl font-medium text-sm bg-primary-500 text-white" data-v="">All</button>
+        <button onclick="filterSellers('false')" class="seller-tab px-4 py-2 rounded-xl font-medium text-sm bg-white border text-dark-700 hover:bg-gray-50" data-v="false">Pending Verification</button>
+        <button onclick="filterSellers('true')" class="seller-tab px-4 py-2 rounded-xl font-medium text-sm bg-white border text-dark-700 hover:bg-gray-50" data-v="true">Verified</button>
+    </div>
+
+    <div id="sellers-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
+
+    <div id="sellers-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+    <div id="sellers-empty" class="hidden text-center py-16">
+        <i data-lucide="store" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <p class="text-gray-500">No sellers found</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allSellers = [];
+let verifiedFilter = '';
+
+async function loadSellers() {
+    try {
+        const response = await API.get('/admin-panel/api/sellers/');
+        const data = await response.json();
+        allSellers = data.results || data || [];
+        document.getElementById('sellers-loading').classList.add('hidden');
+        renderSellers();
+    } catch {
+        document.getElementById('sellers-loading').classList.add('hidden');
+    }
+}
+
+function renderSellers() {
+    const filtered = verifiedFilter === '' ? allSellers : allSellers.filter(s => s.is_verified.toString() === verifiedFilter);
+    
+    if (!filtered.length) {
+        document.getElementById('sellers-empty').classList.remove('hidden');
+        document.getElementById('sellers-grid').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('sellers-empty').classList.add('hidden');
+    document.getElementById('sellers-grid').classList.remove('hidden');
+    
+    document.getElementById('sellers-grid').innerHTML = filtered.map(seller => `
+        <div class="bg-white rounded-2xl shadow-soft p-5">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <i data-lucide="store" class="w-6 h-6 text-primary-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-dark-800">${seller.business_name || seller.user?.username || 'Unknown'}</p>
+                        <p class="text-xs text-gray-500 capitalize">${seller.business_type || ''}</p>
+                    </div>
+                </div>
+                <span class="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${seller.is_verified ? 'bg-success-100 text-success-700' : 'bg-yellow-100 text-yellow-700'}">
+                    <i data-lucide="${seller.is_verified ? 'check-circle' : 'clock'}" class="w-3 h-3"></i>
+                    ${seller.is_verified ? 'Verified' : 'Pending'}
+                </span>
+            </div>
+            
+            <div class="space-y-2 text-sm text-gray-600 mb-4">
+                ${seller.city || seller.state ? `
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <span>${[seller.city, seller.state].filter(Boolean).join(', ')}</span>
+                    </div>
+                ` : ''}
+                ${seller.user?.email ? `
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="mail" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                        <span class="truncate">${seller.user.email}</span>
+                    </div>
+                ` : ''}
+                <div class="flex items-center gap-2">
+                    <i data-lucide="paw-print" class="w-4 h-4 text-gray-400 flex-shrink-0"></i>
+                    <span>${seller.total_pets || 0} pets listed</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                ${!seller.is_verified ? `
+                    <button onclick="verifySeller(${seller.id}, true)" class="flex-1 bg-success-500 hover:bg-success-600 text-white py-2 rounded-xl text-sm font-semibold transition">
+                        ✓ Verify
+                    </button>
+                    <button onclick="verifySeller(${seller.id}, false)" class="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 rounded-xl text-sm transition">
+                        ✗ Reject
+                    </button>
+                ` : `
+                    <button onclick="verifySeller(${seller.id}, false)" class="flex-1 border border-red-300 text-red-600 hover:bg-red-50 py-2 rounded-xl text-sm font-medium transition">
+                        Revoke Verification
+                    </button>
+                `}
+            </div>
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+function filterSellers(verified) {
+    verifiedFilter = verified;
+    document.querySelectorAll('.seller-tab').forEach(tab => {
+        const isActive = tab.dataset.v === verified;
+        tab.className = `seller-tab px-4 py-2 rounded-xl font-medium text-sm ${isActive ? 'bg-primary-500 text-white' : 'bg-white border text-dark-700 hover:bg-gray-50'}`;
+    });
+    renderSellers();
+}
+
+async function verifySeller(id, verified) {
+    try {
+        const response = await API.fetch(`/admin-panel/api/sellers/${id}/verify/`, {
+            method: 'PATCH',
+            body: JSON.stringify({ action: verified ? 'verify' : 'unverify' })
+        });
+        if (response.ok) {
+            showToast(verified ? 'Seller verified!' : 'Verification revoked', 'success');
+            loadSellers();
+        } else { showToast('Failed', 'error'); }
+    } catch { showToast('Failed', 'error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadSellers);
+</script>
+{% endblock %}

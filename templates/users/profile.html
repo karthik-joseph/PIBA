@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-10">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-dark-800">My Profile</h1>
+        <p class="text-gray-500 mt-1">Manage your personal information and account settings</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left: Avatar & Quick Info -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-soft p-6 text-center">
+                <div class="relative inline-block mb-4">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="w-28 h-28 rounded-full object-cover border-4 border-primary-200 mx-auto" id="avatar-preview">
+                    {% else %}
+                        <div class="w-28 h-28 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mx-auto" id="avatar-placeholder">
+                            <span class="text-white text-4xl font-bold">{{ user.username|slice:":1"|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <label for="avatar-upload" class="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-500 hover:bg-primary-600 rounded-full flex items-center justify-center cursor-pointer transition shadow-md">
+                        <i data-lucide="camera" class="w-4 h-4 text-white"></i>
+                    </label>
+                    <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(this)">
+                </div>
+                <h2 class="text-xl font-bold text-dark-800">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="text-gray-500 text-sm">{{ user.email }}</p>
+                <span class="inline-block mt-2 px-3 py-1 rounded-lg text-xs font-semibold
+                    {% if user.role == 'admin' %}bg-red-100 text-red-700
+                    {% elif user.role == 'seller' %}bg-primary-100 text-primary-700
+                    {% else %}bg-secondary-100 text-secondary-700{% endif %}">
+                    {{ user.role|title }}
+                </span>
+
+                {% if user.is_verified %}
+                    <div class="mt-3 flex items-center justify-center gap-1 text-success-600 text-sm">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span>Verified Account</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <h3 class="font-semibold text-dark-800 mb-4">Account Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm flex items-center gap-2">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i> Total Orders
+                        </span>
+                        <span class="font-semibold text-dark-800" id="stat-orders">—</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm flex items-center gap-2">
+                            <i data-lucide="heart" class="w-4 h-4"></i> Wishlist Items
+                        </span>
+                        <span class="font-semibold text-dark-800">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm flex items-center gap-2">
+                            <i data-lucide="star" class="w-4 h-4"></i> Reviews
+                        </span>
+                        <span class="font-semibold text-dark-800">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="bg-white rounded-2xl shadow-soft p-4">
+                <a href="{% url 'order_history' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 hover:text-primary-600 transition">
+                    <i data-lucide="package" class="w-5 h-5"></i>
+                    <span>My Orders</span>
+                </a>
+                <a href="{% url 'wishlist' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 hover:text-primary-600 transition">
+                    <i data-lucide="heart" class="w-5 h-5"></i>
+                    <span>Wishlist</span>
+                </a>
+                <a href="{% url 'my_adoption_requests' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 hover:text-primary-600 transition">
+                    <i data-lucide="paw-print" class="w-5 h-5"></i>
+                    <span>Adoption Requests</span>
+                </a>
+                {% if user.role == 'seller' %}
+                    <a href="{% url 'seller_dashboard' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 hover:text-primary-600 transition">
+                        <i data-lucide="store" class="w-5 h-5"></i>
+                        <span>Seller Dashboard</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 transition mt-2">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Edit Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Profile Form -->
+            <div class="bg-white rounded-2xl shadow-soft p-8">
+                <h2 class="text-xl font-bold text-dark-800 mb-6">Personal Information</h2>
+                <form id="profile-form" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">First Name</label>
+                            <input type="text" name="first_name" value="{{ user.first_name }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Last Name</label>
+                            <input type="text" name="last_name" value="{{ user.last_name }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Email Address</label>
+                        <input type="email" name="email" value="{{ user.email }}"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Phone Number</label>
+                        <input type="tel" name="phone_number" value="{{ user.phone_number }}"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Bio</label>
+                        <textarea name="bio" rows="3"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition resize-none"
+                                  placeholder="Tell us a little about yourself...">{{ profile.bio }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Address</label>
+                        <textarea name="address" rows="2"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition resize-none"
+                                  placeholder="Your address...">{{ profile.address }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">City</label>
+                            <input type="text" name="city" value="{{ profile.city }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">State</label>
+                            <input type="text" name="state" value="{{ profile.state }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Postal Code</label>
+                            <input type="text" name="postal_code" value="{{ profile.postal_code }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div id="profile-msg" class="hidden p-3 rounded-xl text-sm"></div>
+
+                    <button type="submit" id="profile-save-btn"
+                            class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition btn-primary-glow flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Change Password -->
+            <div class="bg-white rounded-2xl shadow-soft p-8">
+                <h2 class="text-xl font-bold text-dark-800 mb-6">Change Password</h2>
+                <form id="password-form" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Current Password</label>
+                        <input type="password" name="old_password" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Enter current password">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">New Password</label>
+                            <input type="password" name="new_password" required
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                                   placeholder="New password">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Confirm New</label>
+                            <input type="password" name="confirm_password" required
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                                   placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    <div id="password-msg" class="hidden p-3 rounded-xl text-sm"></div>
+                    <button type="submit" class="bg-dark-800 hover:bg-dark-700 text-white px-8 py-3 rounded-xl font-semibold transition">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Load order count
+async function loadStats() {
+    try {
+        const response = await API.get('/api/v1/orders/');
+        if (response && response.ok) {
+            const data = await response.json();
+            document.getElementById('stat-orders').textContent = data.length || 0;
+        }
+    } catch {}
+}
+
+// Profile form submission
+document.getElementById('profile-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('profile-save-btn');
+    const msgDiv = document.getElementById('profile-msg');
+    const formData = new FormData(this);
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    
+    const payload = {};
+    formData.forEach((v, k) => { if (v) payload[k] = v; });
+    
+    try {
+        const response = await API.fetch('/api/v1/auth/profile/', {
+            method: 'PATCH',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            msgDiv.textContent = 'Profile updated successfully!';
+            msgDiv.className = 'p-3 rounded-xl text-sm bg-success-50 text-success-700';
+            msgDiv.classList.remove('hidden');
+            showToast('Profile updated!', 'success');
+        } else {
+            msgDiv.textContent = Object.values(data).flat().join(' ');
+            msgDiv.className = 'p-3 rounded-xl text-sm bg-red-50 text-red-600';
+            msgDiv.classList.remove('hidden');
+        }
+    } catch {
+        msgDiv.textContent = 'Failed to update profile.';
+        msgDiv.className = 'p-3 rounded-xl text-sm bg-red-50 text-red-600';
+        msgDiv.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>Save Changes</span>';
+        lucide.createIcons();
+    }
+});
+
+// Password form
+document.getElementById('password-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const msgDiv = document.getElementById('password-msg');
+    const formData = new FormData(this);
+    
+    if (formData.get('new_password') !== formData.get('confirm_password')) {
+        msgDiv.textContent = 'New passwords do not match.';
+        msgDiv.className = 'p-3 rounded-xl text-sm bg-red-50 text-red-600';
+        msgDiv.classList.remove('hidden');
+        return;
+    }
+    
+    try {
+        const response = await API.fetch('/api/v1/auth/password/change/', {
+            method: 'POST',
+            body: JSON.stringify({
+                old_password: formData.get('old_password'),
+                new_password: formData.get('new_password'),
+                confirm_password: formData.get('confirm_password'),
+            })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            msgDiv.textContent = 'Password changed successfully!';
+            msgDiv.className = 'p-3 rounded-xl text-sm bg-success-50 text-success-700';
+            msgDiv.classList.remove('hidden');
+            this.reset();
+        } else {
+            msgDiv.textContent = Object.values(data).flat().join(' ');
+            msgDiv.className = 'p-3 rounded-xl text-sm bg-red-50 text-red-600';
+            msgDiv.classList.remove('hidden');
+        }
+    } catch {
+        msgDiv.textContent = 'Failed to update password.';
+        msgDiv.className = 'p-3 rounded-xl text-sm bg-red-50 text-red-600';
+        msgDiv.classList.remove('hidden');
+    }
+});
+
+function uploadAvatar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const token = AUTH.getToken();
+    fetch('/api/v1/auth/profile/', {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    }).then(r => r.json()).then(() => {
+        showToast('Profile picture updated!', 'success');
+        setTimeout(() => location.reload(), 500);
+    }).catch(() => showToast('Failed to upload avatar.', 'error'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+});
+</script>
+{% endblock %}

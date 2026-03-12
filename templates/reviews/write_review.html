@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Write a Review - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-dark-800">Write a Review</h1>
+        <p class="text-gray-500 mt-2">Share your experience with {{ pet.name }}</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-soft p-8">
+        <!-- Pet Preview -->
+        <div class="flex items-center gap-4 mb-8 p-4 bg-gray-50 rounded-xl">
+            <img src="{{ pet.primary_image_url }}" alt="{{ pet.name }}"
+                 class="w-16 h-16 rounded-xl object-cover"
+                 onerror="this.src='{% static 'images/placeholder/default_pet_image.png' %}'">
+            <div>
+                <h3 class="font-bold text-dark-800">{{ pet.name }}</h3>
+                <p class="text-sm text-gray-500">{{ pet.category.name }}{% if pet.breed %} · {{ pet.breed.name }}{% endif %}</p>
+            </div>
+        </div>
+
+        <form id="review-form" class="space-y-6">
+            <!-- Star Rating -->
+            <div>
+                <label class="block text-sm font-medium text-dark-700 mb-3">Rating *</label>
+                <div class="flex gap-3" id="star-rating">
+                    {% for i in "12345" %}
+                    <button type="button" onclick="setRating({{ forloop.counter }})" 
+                            class="star-btn w-12 h-12 rounded-xl flex items-center justify-center transition hover:bg-yellow-50"
+                            data-value="{{ forloop.counter }}">
+                        <i data-lucide="star" class="w-8 h-8 text-gray-300 transition"></i>
+                    </button>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="rating" id="rating-value" required>
+                <p class="text-sm text-gray-400 mt-2" id="rating-label">Click a star to rate</p>
+            </div>
+
+            <!-- Comment -->
+            <div>
+                <label class="block text-sm font-medium text-dark-700 mb-2">Your Review *</label>
+                <textarea name="comment" required rows="5"
+                          class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none resize-none transition"
+                          placeholder="Share your experience with this pet and seller..."></textarea>
+            </div>
+
+            <!-- Error -->
+            <div id="review-error" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-sm"></div>
+
+            <button type="submit" id="review-btn"
+                    class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold transition btn-primary-glow flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-5 h-5"></i>
+                <span>Submit Review</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const LABELS = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+let selectedRating = 0;
+
+function setRating(value) {
+    selectedRating = value;
+    document.getElementById('rating-value').value = value;
+    document.getElementById('rating-label').textContent = LABELS[value];
+    
+    document.querySelectorAll('.star-btn').forEach((btn, idx) => {
+        const icon = btn.querySelector('i');
+        if (idx < value) {
+            icon.setAttribute('data-lucide', 'star');
+            icon.style.color = '#FBBF24';
+            icon.style.fill = '#FBBF24';
+        } else {
+            icon.setAttribute('data-lucide', 'star');
+            icon.style.color = '#D1D5DB';
+            icon.style.fill = 'none';
+        }
+    });
+    lucide.createIcons();
+}
+
+document.getElementById('review-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('review-btn');
+    const errDiv = document.getElementById('review-error');
+    
+    if (!selectedRating) {
+        errDiv.textContent = 'Please select a rating.';
+        errDiv.classList.remove('hidden');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    errDiv.classList.add('hidden');
+    
+    try {
+        const response = await API.fetch('/api/v1/reviews/pets/{{ pet.slug }}/create/', {
+            method: 'POST',
+            body: JSON.stringify({
+                rating: parseInt(formData.get('rating')),
+                comment: formData.get('comment'),
+            })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Review submitted! Thank you.', 'success');
+            setTimeout(() => window.location.href = '/pets/{{ pet.slug }}/', 800);
+        } else {
+            const msg = typeof data === 'object' ? Object.values(data).flat().join(' ') : 'Failed to submit review.';
+            errDiv.textContent = msg;
+            errDiv.classList.remove('hidden');
+        }
+    } catch {
+        errDiv.textContent = 'An error occurred.';
+        errDiv.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i><span>Submit Review</span>';
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

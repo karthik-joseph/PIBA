@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PIBA Admin Login - Secure administrator access">
+    <title>Admin Login | PIBA</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { primary: ['Inter', 'sans-serif'], logo: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        primary: { 50:'#FFF4EC', 100:'#FFE4CF', 500:'#F97316', 600:'#E4600C', 700:'#C44E06' },
+                        dark: { 900:'#0F172A', 800:'#1E293B', 700:'#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .admin-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1a2744 100%); }
+        .glass-panel {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .input-field {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-field::placeholder { color: rgba(255,255,255,0.35); }
+        .input-field:focus {
+            background: rgba(255,255,255,0.1);
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+            outline: none;
+        }
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+
+<body class="admin-gradient min-h-screen flex items-center justify-center px-4 overflow-hidden relative">
+
+    <!-- Background orbs -->
+    <div class="orb w-96 h-96 bg-orange-500 top-[-100px] right-[-100px]"></div>
+    <div class="orb w-64 h-64 bg-blue-600 bottom-[-80px] left-[-60px]" style="animation-delay:2s"></div>
+    <div class="orb w-48 h-48 bg-purple-600 top-1/2 left-[10%]" style="animation-delay:4s"></div>
+
+    <div class="relative z-10 w-full max-w-md">
+
+        <!-- Card -->
+        <div class="glass-panel rounded-3xl p-8">
+
+            <!-- Logo + Title -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-3 mb-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-orange-500 rounded-2xl blur-lg opacity-50"></div>
+                        <img src="{% static 'images/logo/piba_logo_200x200.png' %}" alt="PIBA" class="relative w-14 h-14 rounded-2xl">
+                    </div>
+                </div>
+                <h1 class="text-white text-2xl font-bold font-logo">PIBA Admin</h1>
+                <p class="text-slate-400 text-sm mt-1">Sign in to access the admin panel</p>
+            </div>
+
+            <!-- Admin badge -->
+            <div class="flex items-center justify-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-2 mb-6">
+                <i data-lucide="shield-check" class="w-4 h-4 text-orange-400"></i>
+                <span class="text-orange-400 text-xs font-semibold uppercase tracking-wider">Administrator Access Only</span>
+            </div>
+
+            <!-- Error message -->
+            <div id="login-error" class="hidden mb-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+                <span id="error-text"></span>
+            </div>
+
+            <!-- Form -->
+            <form id="admin-login-form" class="space-y-4">
+                {% csrf_token %}
+                <!-- Email -->
+                <div>
+                    <label class="block text-slate-300 text-sm font-medium mb-2">Email Address</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="email" id="email" name="email" required
+                               class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-sm"
+                               placeholder="admin@piba.com">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-slate-300 text-sm font-medium mb-2">Password</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                        <input type="password" id="password" name="password" required
+                               class="input-field w-full pl-11 pr-12 py-3 rounded-xl text-sm"
+                               placeholder="Enter your password">
+                        <button type="button" id="toggle-password" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" id="login-btn"
+                        class="w-full mt-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                    <i data-lucide="shield" class="w-4 h-4"></i>
+                    <span id="btn-text">Access Admin Panel</span>
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3 my-5">
+                <div class="h-px flex-1 bg-white/10"></div>
+                <span class="text-slate-500 text-xs">or</span>
+                <div class="h-px flex-1 bg-white/10"></div>
+            </div>
+
+            <!-- Go back link -->
+            <a href="/" class="flex items-center justify-center gap-2 text-slate-400 hover:text-white text-sm transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Website
+            </a>
+
+        </div>
+
+        <!-- Footer note -->
+        <p class="text-center text-slate-600 text-xs mt-6">
+            This area is restricted to authorized administrators only.
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Toggle password visibility
+        document.getElementById('toggle-password').addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const icon = this.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        });
+
+        // Login form submission
+        document.getElementById('admin-login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('login-btn');
+            const btnText = document.getElementById('btn-text');
+            const errorDiv = document.getElementById('login-error');
+            const errorText = document.getElementById('error-text');
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div>';
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/v1/auth/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const role = data.user?.role;
+                    const isSuperuser = data.user?.is_superuser;
+
+                    if (role === 'admin' || isSuperuser) {
+                        // Store tokens
+                        localStorage.setItem('access_token', data.tokens.access);
+                        localStorage.setItem('refresh_token', data.tokens.refresh);
+
+                        btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i><span>Redirecting...</span>';
+                        lucide.createIcons();
+
+                        setTimeout(() => {
+                            const next = new URLSearchParams(window.location.search).get('next');
+                            window.location.href = next || '/admin-panel/';
+                        }, 600);
+                    } else {
+                        errorText.textContent = 'Access denied. Administrator privileges required.';
+                        errorDiv.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i><span id="btn-text">Access Admin Panel</span>';
+                        lucide.createIcons();
+                    }
+                } else {
+                    errorText.textContent = data.error || data.detail || 'Invalid credentials. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i><span>Access Admin Panel</span>';
+                    lucide.createIcons();
+                }
+            } catch {
+                errorText.textContent = 'Unable to connect. Please check your connection and try again.';
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="shield" class="w-4 h-4"></i><span>Access Admin Panel</span>';
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+:root {
+    /* PRIMARY COLOR - Warm Paw Orange (Main CTA Color) */
+    --primary-50:  #FFF4EC;
+    --primary-100: #FFE4CF;
+    --primary-200: #FFC79E;
+    --primary-300: #FFA969;
+    --primary-400: #FF8C42;
+    --primary-500: #F97316;  /* MAIN BRAND */
+    --primary-600: #E4600C;
+    --primary-700: #C44E06;
+    --primary-800: #9A3D05;
+    --primary-900: #7A2F03;
+
+    /* SECONDARY COLOR (Trust Blue) */
+    --secondary-50:  #EFF6FF;
+    --secondary-100: #DBEAFE;
+    --secondary-200: #BFDBFE;
+    --secondary-300: #93C5FD;
+    --secondary-400: #60A5FA;
+    --secondary-500: #3B82F6;
+    --secondary-600: #2563EB;
+    --secondary-700: #1D4ED8;
+    --secondary-800: #1E40AF;
+    --secondary-900: #1E3A8A;
+
+    /* SUCCESS COLOR (Adoption/Health Green) */
+    --success-50:  #ECFDF5;
+    --success-100: #D1FAE5;
+    --success-200: #A7F3D0;
+    --success-300: #6EE7B7;
+    --success-400: #34D399;
+    --success-500: #10B981;
+    --success-600: #059669;
+    --success-700: #047857;
+    --success-800: #065F46;
+    --success-900: #064E3B;
+
+    /* ACCENT COLOR (Emotional Soft Pink) */
+    --accent-50:  #FFF1F2;
+    --accent-100: #FFE4E6;
+    --accent-200: #FECDD3;
+    --accent-300: #FDA4AF;
+    --accent-400: #FB7185;
+    --accent-500: #F43F5E;
+    --accent-600: #E11D48;
+    --accent-700: #BE123C;
+    --accent-800: #9F1239;
+    --accent-900: #881337;
+
+    /* DARK NEUTRAL COLORS (Text & Layout) */
+    --dark-900: #0F172A;   /* Main text */
+    --dark-800: #1E293B;
+    --dark-700: #334155;
+    --dark-600: #475569;
+    --dark-500: #64748B;
+
+    /* LIGHT NEUTRAL COLORS (Backgrounds) */
+    --light-50:  #F8FAFC;
+    --light-100: #F1F5F9;
+    --light-200: #E2E8F0;
+    --light-300: #CBD5E1;
+    --white:     #FFFFFF;
+}
+.primary-button {
+    background: var(--primary-500);
+    color: white;
+    &:hover { background: var(--primary-600); color: var(--white); }
+}
+
+.secondary-button {
+    background: var(--secondary-500);
+    color: white;
+    &:hover { background: var(--secondary-600); color: var(--white); }
+}
+
+.hero-gradient {
+    background: linear-gradient(135deg, var(--primary-500), var(--accent-400));
+}
+
+.soft-bg-gradient {
+    background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+}

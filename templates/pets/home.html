@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PIBA - Find Your Perfect Pet Companion{% endblock %}
+
+{% block content %}
+<!-- Hero Section Wrapper to maintain page flow -->
+<div class="h-[70vh] lg:h-[80vh]">
+    <!-- Hero Section: Fixed in background -->
+    <section class="fixed top-0 left-0 w-full h-[70vh] lg:h-[80vh] overflow-hidden z-[0]">
+        <div class="gradient-hero h-full flex items-center">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Hero Content -->
+                    <div class="text-white animate-fade-in z-10">
+                        <h1 class="text-4xl lg:text-6xl font-bold leading-tight mb-6">
+                            Find Your Perfect <br>
+                            <span class="text-primary-200">Pet Companion</span>
+                        </h1>
+                        <p class="text-lg lg:text-xl text-white/90 mb-8 max-w-lg">
+                            Browse thousands of pets from verified sellers. Safe, trusted, and responsible pet adoption made easy.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="{% url 'pet_listing' %}" class="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold hover:bg-primary-50 transition text-center">
+                                Browse Pets
+                            </a>
+                            <a href="{% url 'pet_listing' %}?listing_type=adoption" class="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition text-center">
+                                Adopt a Pet
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Hero Image -->
+                    <div class="hidden lg:block relative">
+                        <img src="{% static 'images/hero/family_photo_with_dog.jpg' %}" 
+                             alt="Happy family with pet"
+                             class="rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                        <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-lg animate-float">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="shield-check" class="w-6 h-6 text-success-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-dark-800">Verified Sellers</p>
+                                    <p class="text-sm text-gray-500">100% Trusted</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave Divider -->
+        <div class="absolute bottom-0 left-0 right-0">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#F9FAFB"/>
+            </svg>
+        </div>
+    </section>
+</div>
+
+<!-- Search Bar -->
+<section class="relative z-10 bg-gray-50 -mt-8 pt-4">
+    <div class="max-w-3xl mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-lg p-4">
+            <form action="{% url 'pet_listing' %}" method="GET" class="flex flex-col sm:flex-row gap-3">
+                <div class="flex-1 relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                    <input type="text" name="search" placeholder="Search for pets, breeds..." 
+                           class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition">
+                </div>
+                <select name="category" class="px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                    <option value="">All Categories</option>
+                </select>
+                <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition btn-primary-glow">
+                    Search
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-16 relative z-10 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-dark-800 mb-4">Browse by Category</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Find the perfect pet from our wide range of categories</p>
+        </div>
+
+        <div id="categories-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Categories loaded via JS -->
+            <div class="col-span-full text-center py-8">
+                <div class="spinner mx-auto"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Pets Section -->
+<section class="py-16 bg-white relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h2 class="text-3xl font-bold text-dark-800 mb-2">Featured Pets</h2>
+                <p class="text-gray-600">Hand-picked companions waiting for their forever home</p>
+            </div>
+            <a href="{% url 'pet_listing' %}?is_featured=true" class="hidden sm:flex items-center text-primary-600 hover:text-primary-700 font-semibold">
+                View All <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+            </a>
+        </div>
+
+        <div id="featured-pets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Featured pets loaded via JS -->
+            <div class="col-span-full text-center py-8">
+                <div class="spinner mx-auto"></div>
+            </div>
+        </div>
+
+        <div class="sm:hidden text-center mt-8">
+            <a href="{% url 'pet_listing' %}?is_featured=true" class="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold">
+                View All Featured Pets <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-16 gradient-soft relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-dark-800 mb-4">Why Choose PIBA?</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">We're committed to making pet adoption safe, easy, and joyful</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="bg-white rounded-2xl p-8 shadow-soft hover:shadow-lg transition">
+                <div class="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="shield-check" class="w-7 h-7 text-primary-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark-800 mb-3">Verified Sellers</h3>
+                <p class="text-gray-600">All our sellers go through a strict verification process to ensure authenticity and trust.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="bg-white rounded-2xl p-8 shadow-soft hover:shadow-lg transition">
+                <div class="w-14 h-14 bg-success-100 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="heart-pulse" class="w-7 h-7 text-success-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark-800 mb-3">Health Guaranteed</h3>
+                <p class="text-gray-600">Every pet comes with health records and vaccination details for your peace of mind.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="bg-white rounded-2xl p-8 shadow-soft hover:shadow-lg transition">
+                <div class="w-14 h-14 bg-secondary-100 rounded-xl flex items-center justify-center mb-6">
+                    <i data-lucide="headphones" class="w-7 h-7 text-secondary-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark-800 mb-3">24/7 Support</h3>
+                <p class="text-gray-600">Our dedicated support team is always ready to help you with any questions.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-16 bg-dark-900 text-white relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+            <div>
+                <div class="text-4xl lg:text-5xl font-bold text-primary-400 mb-2" id="stat-pets">1000+</div>
+                <p class="text-gray-400">Happy Pets</p>
+            </div>
+            <div>
+                <div class="text-4xl lg:text-5xl font-bold text-primary-400 mb-2" id="stat-sellers">500+</div>
+                <p class="text-gray-400">Verified Sellers</p>
+            </div>
+            <div>
+                <div class="text-4xl lg:text-5xl font-bold text-primary-400 mb-2" id="stat-adoptions">800+</div>
+                <p class="text-gray-400">Successful Adoptions</p>
+            </div>
+            <div>
+                <div class="text-4xl lg:text-5xl font-bold text-primary-400 mb-2">4.8</div>
+                <p class="text-gray-400">Average Rating</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 relative z-10 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold text-dark-800 mb-4">Ready to Find Your Perfect Pet?</h2>
+        <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+            Join thousands of happy pet owners who found their companions through PIBA. Start your journey today!
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'pet_listing' %}" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold transition btn-primary-glow">
+                Browse All Pets
+            </a>
+            <a href="{% url 'seller_register' %}" class="border-2 border-primary-500 text-primary-600 hover:bg-primary-50 px-8 py-4 rounded-xl font-semibold transition">
+                Become a Seller
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load categories
+    fetch('/api/v1/pets/categories/')
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('categories-grid');
+            const categories = data.results || data;
+            
+            if (categories.length > 0) {
+                const icons = {
+                    'Dogs': 'dog_standing_black_fill.png',
+                    'Cats': 'cat_standing_black_fill.png',
+                    'Birds': 'dove_black_fill.png',
+                    'Fish': 'fish_black_fill.png',
+                    'Rabbits': 'rabbit_black_fill.png',
+                    'Reptiles': 'reptile.png'
+                };
+                
+                grid.innerHTML = categories.map(cat => `
+                    <a href="/pets/?category=${cat.slug}" 
+                       class="bg-white rounded-2xl p-6 shadow-soft hover:shadow-lg hover:-translate-y-1 transition-all text-center group">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-primary-50 rounded-xl flex items-center justify-center group-hover:bg-primary-100 transition">
+                            <img src="/static/images/icons/pet_category/${icons[cat.name] || 'pawprint.png'}" 
+                                 alt="${cat.name}" class="w-10 h-10">
+                        </div>
+                        <h3 class="font-semibold text-dark-800 group-hover:text-primary-600 transition">${cat.name}</h3>
+                        <p class="text-sm text-gray-500 mt-1">${cat.pet_count || 0} pets</p>
+                    </a>
+                `).join('');
+            } else {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500">No categories available</p>';
+            }
+
+            // Also populate the search bar category dropdown
+            const searchCatSelect = document.querySelector('form select[name="category"]');
+            if (searchCatSelect) {
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.slug;
+                    option.textContent = cat.name;
+                    searchCatSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(() => {
+            document.getElementById('categories-grid').innerHTML = '<p class="col-span-full text-center text-gray-500">Failed to load categories</p>';
+        });
+
+    // Load featured pets
+    fetch('/api/v1/pets/featured/')
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('featured-pets-grid');
+            const pets = data.results || data;
+            
+            if (pets.length > 0) {
+                grid.innerHTML = pets.slice(0, 8).map(pet => `
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-lg transition-all duration-300 group">
+                        <div class="relative aspect-[4/3] overflow-hidden">
+                            <img src="${pet.primary_image_url}" 
+                                 alt="${pet.name}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                            ${pet.is_featured ? '<span class="absolute top-3 left-3 bg-primary-500 text-white text-xs px-2 py-1 rounded-lg">Featured</span>' : ''}
+                            ${pet.listing_type === 'adoption' ? '<span class="absolute top-3 right-3 bg-success-500 text-white text-xs px-2 py-1 rounded-lg">Adoption</span>' : ''}
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs text-primary-600 font-medium bg-primary-50 px-2 py-1 rounded">${pet.category_name}</span>
+                            </div>
+                            <h3 class="font-semibold text-dark-800 text-lg mb-1 truncate">
+                                <a href="/pets/${pet.slug}/" class="hover:text-primary-600 transition">${pet.name}</a>
+                            </h3>
+                            <div class="flex items-center text-sm text-gray-500 mb-3">
+                                <span>${pet.age_display || 'Unknown age'}</span>
+                                <span class="mx-2">•</span>
+                                <span class="capitalize">${pet.gender}</span>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                ${pet.listing_type === 'sale' 
+                                    ? `<span class="text-xl font-bold text-primary-600">₹${parseInt(pet.price).toLocaleString()}</span>` 
+                                    : '<span class="text-lg font-semibold text-success-600">Free Adoption</span>'}
+                                <span class="text-sm text-gray-500">${pet.seller_city || ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500">No featured pets available</p>';
+            }
+            
+            lucide.createIcons();
+        })
+        .catch(() => {
+            document.getElementById('featured-pets-grid').innerHTML = '<p class="col-span-full text-center text-gray-500">Failed to load featured pets</p>';
+        });
+});
+</script>
+{% endblock %}

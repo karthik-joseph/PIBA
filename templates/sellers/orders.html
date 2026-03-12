@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seller Orders - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-dark-800">Orders</h1>
+            <p class="text-gray-500 mt-1">Manage orders for your pets</p>
+        </div>
+        <a href="{% url 'seller_dashboard' %}" class="text-primary-600 font-medium hover:text-primary-700 flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard
+        </a>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="flex gap-2 mb-6 overflow-x-auto">
+        <button onclick="filterOrders('')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-primary-500 text-white whitespace-nowrap" data-s="">All</button>
+        <button onclick="filterOrders('pending')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-white text-dark-700 border hover:bg-gray-50 whitespace-nowrap" data-s="pending">Pending</button>
+        <button onclick="filterOrders('confirmed')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-white text-dark-700 border hover:bg-gray-50 whitespace-nowrap" data-s="confirmed">Confirmed</button>
+        <button onclick="filterOrders('processing')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-white text-dark-700 border hover:bg-gray-50 whitespace-nowrap" data-s="processing">Processing</button>
+        <button onclick="filterOrders('shipped')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-white text-dark-700 border hover:bg-gray-50 whitespace-nowrap" data-s="shipped">Shipped</button>
+        <button onclick="filterOrders('delivered')" class="status-filter-btn px-4 py-2 rounded-xl font-medium text-sm bg-white text-dark-700 border hover:bg-gray-50 whitespace-nowrap" data-s="delivered">Delivered</button>
+    </div>
+
+    <div id="orders-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
+
+    <div id="orders-empty" class="hidden text-center py-16">
+        <i data-lucide="package" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <p class="text-gray-500 text-lg">No orders found.</p>
+    </div>
+
+    <div id="orders-container" class="hidden space-y-4"></div>
+</div>
+
+<!-- Order Update Modal -->
+<div id="status-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+        <h3 class="text-lg font-bold text-dark-800 mb-4">Update Order Status</h3>
+        <input type="hidden" id="modal-order-id">
+        <select id="modal-status" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none mb-4">
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        <div class="flex gap-3">
+            <button onclick="updateOrderStatus()" class="flex-1 bg-primary-500 hover:bg-primary-600 text-white py-3 rounded-xl font-semibold transition">Update</button>
+            <button onclick="closeModal()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allOrders = [];
+let currentFilter = '';
+
+const STATUS_CLR = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    confirmed: 'bg-secondary-100 text-secondary-700',
+    processing: 'bg-blue-100 text-blue-700',
+    shipped: 'bg-purple-100 text-purple-700',
+    delivered: 'bg-success-100 text-success-700',
+    cancelled: 'bg-red-100 text-red-600',
+};
+
+async function loadOrders() {
+    try {
+        const response = await API.get('/api/v1/orders/seller/');
+        allOrders = await response.json();
+        document.getElementById('orders-loading').classList.add('hidden');
+        renderOrders();
+    } catch {
+        document.getElementById('orders-loading').classList.add('hidden');
+        document.getElementById('orders-empty').classList.remove('hidden');
+    }
+}
+
+function renderOrders() {
+    const filtered = currentFilter ? allOrders.filter(o => o.status === currentFilter) : allOrders;
+    
+    if (filtered.length === 0) {
+        document.getElementById('orders-empty').classList.remove('hidden');
+        document.getElementById('orders-container').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('orders-empty').classList.add('hidden');
+    document.getElementById('orders-container').classList.remove('hidden');
+    
+    const container = document.getElementById('orders-container');
+    container.innerHTML = filtered.map(order => {
+        const date = new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+        const statusClass = STATUS_CLR[order.status] || 'bg-gray-100 text-gray-700';
+        const items = order.items || [];
+        
+        return `
+        <div class="bg-white rounded-2xl shadow-soft p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h3 class="font-bold text-dark-800">Order #${order.order_number}</h3>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusClass} capitalize">${order.status}</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">${date} · Buyer: ${order.buyer_name || order.buyer?.username || 'Unknown'}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xl font-bold text-primary-600">₹${parseInt(order.total_amount).toLocaleString()}</span>
+                    <button onclick="openStatusModal('${order.order_number}', '${order.status}')"
+                            class="bg-secondary-50 hover:bg-secondary-100 text-secondary-700 px-4 py-2 rounded-xl text-sm font-medium transition">
+                        Update Status
+                    </button>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="flex gap-3 flex-wrap">
+                ${items.map(item => `
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-2">
+                        <div class="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                            <img src="${item.pet?.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" 
+                                 alt="${item.pet_name_snapshot}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-dark-800">${item.pet_name_snapshot}</p>
+                            <p class="text-xs text-gray-500">₹${parseInt(item.price_at_purchase).toLocaleString()}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Shipping Address -->
+            ${order.shipping_address ? `
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <p class="text-xs text-gray-500">Ship to: ${order.shipping_address.address || ''}, ${order.shipping_address.city || ''}, ${order.shipping_address.state || ''}</p>
+            </div>
+            ` : ''}
+        </div>
+        `;
+    }).join('');
+}
+
+function openStatusModal(orderNumber, currentStatus) {
+    document.getElementById('modal-order-id').value = orderNumber;
+    document.getElementById('modal-status').value = currentStatus;
+    document.getElementById('status-modal').classList.remove('hidden');
+    document.getElementById('status-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('status-modal').classList.add('hidden');
+}
+
+async function updateOrderStatus() {
+    const orderNumber = document.getElementById('modal-order-id').value;
+    const newStatus = document.getElementById('modal-status').value;
+    
+    try {
+        const response = await API.fetch(`/api/v1/orders/seller/${orderNumber}/update/`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.ok) {
+            showToast('Order status updated!', 'success');
+            closeModal();
+            loadOrders();
+        } else {
+            showToast('Failed to update order', 'error');
+        }
+    } catch {
+        showToast('Failed to update order', 'error');
+    }
+}
+
+function filterOrders(status) {
+    currentFilter = status;
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+        const isActive = btn.dataset.s === status;
+        btn.className = `status-filter-btn px-4 py-2 rounded-xl font-medium text-sm whitespace-nowrap transition ${isActive ? 'bg-primary-500 text-white' : 'bg-white text-dark-700 border hover:bg-gray-50'}`;
+    });
+    renderOrders();
+}
+
+document.addEventListener('DOMContentLoaded', loadOrders);
+</script>
+{% endblock %}

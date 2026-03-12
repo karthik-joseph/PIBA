@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seller Dashboard - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-dark-800">Seller Dashboard</h1>
+            <p class="text-gray-500 mt-1">Manage your pet listings and orders</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'seller_add_pet' %}"
+               class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-xl font-semibold flex items-center gap-2 transition btn-primary-glow">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Add New Pet
+            </a>
+        </div>
+    </div>
+
+    <!-- Seller Status Banner -->
+    <div id="seller-status-banner" class="hidden mb-8 p-4 rounded-2xl flex items-start gap-3">
+        <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-semibold" id="seller-status-title"></p>
+            <p class="text-sm opacity-80 mt-1" id="seller-status-msg"></p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10" id="stats-grid">
+        <div class="bg-white rounded-2xl shadow-soft p-6 text-center">
+            <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="paw-print" class="w-6 h-6 text-primary-600"></i>
+            </div>
+            <div class="text-3xl font-bold text-dark-800 mb-1" id="stat-total-pets">—</div>
+            <p class="text-gray-500 text-sm">Total Pets</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-soft p-6 text-center">
+            <div class="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="check-circle" class="w-6 h-6 text-success-600"></i>
+            </div>
+            <div class="text-3xl font-bold text-dark-800 mb-1" id="stat-available-pets">—</div>
+            <p class="text-gray-500 text-sm">Available</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-soft p-6 text-center">
+            <div class="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="shopping-bag" class="w-6 h-6 text-secondary-600"></i>
+            </div>
+            <div class="text-3xl font-bold text-dark-800 mb-1" id="stat-total-orders">—</div>
+            <p class="text-gray-500 text-sm">Total Orders</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-soft p-6 text-center">
+            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="indian-rupee" class="w-6 h-6 text-yellow-600"></i>
+            </div>
+            <div class="text-3xl font-bold text-dark-800 mb-1" id="stat-revenue">—</div>
+            <p class="text-gray-500 text-sm">Revenue</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- My Listings -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl font-bold text-dark-800">My Pet Listings</h2>
+                    <a href="{% url 'seller_manage_pets' %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">View All →</a>
+                </div>
+                <div id="my-listings" class="space-y-3">
+                    <div class="text-center py-8"><div class="spinner mx-auto"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders & Quick Actions -->
+        <div class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <h2 class="text-lg font-bold text-dark-800 mb-4">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a href="{% url 'seller_add_pet' %}" class="flex items-center gap-3 p-3 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-700 transition font-medium">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Add New Pet
+                    </a>
+                    <a href="{% url 'seller_manage_pets' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-dark-700 transition">
+                        <i data-lucide="list" class="w-5 h-5 text-gray-500"></i> Manage Listings
+                    </a>
+                    <a href="{% url 'seller_orders' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-dark-700 transition">
+                        <i data-lucide="package" class="w-5 h-5 text-gray-500"></i> View Orders
+                    </a>
+                    <a href="{% url 'profile' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-dark-700 transition">
+                        <i data-lucide="settings" class="w-5 h-5 text-gray-500"></i> Profile Settings
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pending Orders -->
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-dark-800">Recent Orders</h2>
+                    <a href="{% url 'seller_orders' %}" class="text-primary-600 text-sm">View All</a>
+                </div>
+                <div id="recent-orders">
+                    <div class="text-center py-4"><div class="spinner mx-auto"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadDashboard() {
+    // Load stats
+    try {
+        const response = await API.get('/api/v1/sellers/dashboard/stats/');
+        const data = await response.json();
+        
+        document.getElementById('stat-total-pets').textContent = data.total_pets || 0;
+        document.getElementById('stat-available-pets').textContent = data.available_pets || 0;
+        document.getElementById('stat-total-orders').textContent = data.total_orders || 0;
+        document.getElementById('stat-revenue').textContent = '₹' + parseInt(data.total_revenue || 0).toLocaleString();
+    } catch {}
+
+    // Load seller profile / status
+    try {
+        const profileResponse = await API.get('/api/v1/sellers/profile/');
+        const profile = await profileResponse.json();
+        
+        const banner = document.getElementById('seller-status-banner');
+        if (!profile.is_verified) {
+            banner.className = 'mb-8 p-4 rounded-2xl flex items-start gap-3 bg-amber-50 text-amber-800';
+            document.getElementById('seller-status-title').textContent = 'Your account is pending verification';
+            document.getElementById('seller-status-msg').textContent = 'Our admin team will review your account. You cannot list pets until verified.';
+            banner.classList.remove('hidden');
+        }
+    } catch {}
+
+    // Load my listings
+    try {
+        const listingsResponse = await API.get('/api/v1/pets/my-listings/');
+        const data = await listingsResponse.json();
+        const pets = data.results || data;
+        
+        const container = document.getElementById('my-listings');
+        
+        if (!pets || pets.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <i data-lucide="paw-print" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+                    <p class="text-gray-500">No pet listings yet.</p>
+                    <a href="{% url 'seller_add_pet' %}" class="text-primary-600 font-medium mt-2 inline-block">Add your first pet →</a>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+        
+        container.innerHTML = pets.slice(0, 5).map(pet => `
+            <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition group">
+                <img src="${pet.primary_image_url}" alt="${pet.name}"
+                     class="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                     onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-dark-800 truncate">${pet.name}</p>
+                    <p class="text-sm text-gray-500">${pet.category_name} · ${pet.breed_name || 'Mixed'}</p>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="font-bold text-primary-600">₹${parseInt(pet.price).toLocaleString()}</p>
+                    <span class="text-xs px-2 py-1 rounded-full
+                        ${pet.status === 'available' ? 'bg-success-100 text-success-700' 
+                        : pet.status === 'sold' ? 'bg-gray-100 text-gray-600' 
+                        : 'bg-yellow-100 text-yellow-700'}">
+                        ${pet.status}
+                    </span>
+                </div>
+                <div class="opacity-0 group-hover:opacity-100 transition flex gap-2">
+                    <a href="/seller/pets/${pet.slug}/edit/" class="p-2 bg-secondary-100 text-secondary-700 rounded-lg hover:bg-secondary-200 transition">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        lucide.createIcons();
+    } catch {}
+
+    // Load recent orders
+    try {
+        const ordersResponse = await API.get('/api/v1/orders/seller/');
+        const orders = await ordersResponse.json();
+        const container = document.getElementById('recent-orders');
+        
+        if (!orders || orders.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-sm text-center">No orders yet</p>';
+            return;
+        }
+        
+        container.innerHTML = orders.slice(0, 3).map(order => `
+            <div class="p-3 rounded-xl border border-gray-100 mb-2">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-dark-800">#${order.order_number}</p>
+                        <p class="text-xs text-gray-500">${new Date(order.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">${order.status}</span>
+                </div>
+                <p class="text-primary-600 font-bold text-sm mt-1">₹${parseInt(order.total_amount).toLocaleString()}</p>
+            </div>
+        `).join('');
+    } catch {}
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+{% endblock %}

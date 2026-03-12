@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-10">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-dark-800">My Orders</h1>
+        <p class="text-gray-500 mt-1">Track and manage all your pet orders</p>
+    </div>
+
+    <div id="orders-loading" class="text-center py-20">
+        <div class="spinner mx-auto"></div>
+        <p class="text-gray-500 mt-4">Loading your orders...</p>
+    </div>
+
+    <div id="orders-empty" class="hidden text-center py-20">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="package" class="w-12 h-12 text-gray-300"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-dark-800 mb-3">No orders yet</h2>
+        <p class="text-gray-500 mb-8">Your order history will appear here once you make a purchase.</p>
+        <a href="{% url 'pet_listing' %}" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition">
+            Browse Pets
+        </a>
+    </div>
+
+    <div id="orders-list" class="hidden space-y-4"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const STATUS_COLORS = {
+    pending: 'bg-yellow-100 text-yellow-700',
+    confirmed: 'bg-secondary-100 text-secondary-700',
+    processing: 'bg-blue-100 text-blue-700',
+    shipped: 'bg-purple-100 text-purple-700',
+    delivered: 'bg-success-100 text-success-700',
+    cancelled: 'bg-red-100 text-red-600',
+};
+
+async function loadOrders() {
+    try {
+        const response = await API.get('/api/v1/orders/');
+        const data = await response.json();
+
+        document.getElementById('orders-loading').classList.add('hidden');
+
+        if (!data || data.length === 0) {
+            document.getElementById('orders-empty').classList.remove('hidden');
+            return;
+        }
+
+        const container = document.getElementById('orders-list');
+        container.classList.remove('hidden');
+
+        container.innerHTML = data.map(order => {
+            const statusClass = STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-700';
+            const date = new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+            const items = order.items || [];
+            const firstItem = items[0] || {};
+            
+            return `
+                <div class="bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <div class="p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="font-bold text-dark-800">Order #${order.order_number}</span>
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusClass} capitalize">${order.status}</span>
+                                </div>
+                                <p class="text-sm text-gray-500">Placed on ${date}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-primary-600">₹${parseInt(order.total_amount).toLocaleString()}</p>
+                                <p class="text-sm text-gray-500">${items.length} item${items.length !== 1 ? 's' : ''}</p>
+                            </div>
+                        </div>
+
+                        <!-- Items Preview -->
+                        <div class="flex gap-2 mb-4 overflow-x-auto">
+                            ${items.slice(0, 4).map(item => `
+                                <div class="flex-shrink-0 w-14 h-14 bg-gray-100 rounded-xl overflow-hidden">
+                                    <img src="${item.pet ? item.pet.primary_image_url : '/static/images/placeholder/default_pet_image.png'}" 
+                                         alt="${item.pet_name_snapshot}"
+                                         class="w-full h-full object-cover"
+                                         onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                                </div>
+                            `).join('')}
+                            ${items.length > 4 ? `<div class="flex-shrink-0 w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 text-sm">+${items.length - 4}</div>` : ''}
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="/orders/${order.order_number}/"
+                               class="flex-1 bg-primary-50 hover:bg-primary-100 text-primary-700 py-2 rounded-xl font-medium text-center transition text-sm">
+                                View Details
+                            </a>
+                            ${order.status === 'pending' || order.status === 'confirmed' ? `
+                                <button onclick="cancelOrder('${order.order_number}')"
+                                        class="border border-red-300 hover:bg-red-50 text-red-600 py-2 px-4 rounded-xl text-sm transition">
+                                    Cancel
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        document.getElementById('orders-loading').classList.add('hidden');
+        document.getElementById('orders-empty').classList.remove('hidden');
+    }
+}
+
+async function cancelOrder(orderNumber) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    
+    try {
+        const response = await API.fetch(`/api/v1/orders/${orderNumber}/cancel/`, { method: 'POST' });
+        if (response.ok) {
+            showToast('Order cancelled successfully', 'info');
+            loadOrders();
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to cancel order', 'error');
+        }
+    } catch {
+        showToast('Failed to cancel order', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadOrders);
+</script>
+{% endblock %}

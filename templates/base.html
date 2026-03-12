@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- SEO -->
+        <meta name="description" content="{% block meta_description %}PIBA - Pets Information & Buying Application. Browse pets, compare breeds, adopt safely, and connect with verified sellers.{% endblock %}">
+        <meta name="keywords" content="pets, dog adoption, cat adoption, buy pets online, pet shop, verified sellers, PIBA">
+        <meta name="author" content="PIBA">
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="{% block og_title %}PIBA - Pets Marketplace{% endblock %}">
+        <meta property="og:description" content="Find your perfect companion. Safe, verified, and responsible pet adoption.">
+        <meta property="og:image" content="{% static 'images/logo/piba_logo_200x200.png' %}">
+        <meta property="og:type" content="website">
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="PIBA - Pets Marketplace">
+        <meta name="twitter:image" content="{% static 'images/logo/piba_logo_200x200.png' %}">
+
+        <title>{% block title %}PIBA{% endblock %}</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{% static 'images/logo/piba_logo_200x200.png' %}">
+        <link rel="apple-touch-icon" href="{% static 'images/logo/piba_logo_200x200.png' %}">
+
+        <!-- Tailwind CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            primary: ['Inter', 'sans-serif'],
+                            logo: ['Poppins', 'sans-serif'],
+                        },
+
+                        colors: {
+                            /* Primary (Pet Orange) */
+                            primary: {
+                                50:  '#FFF4EC',
+                                100: '#FFE4CF',
+                                200: '#FFC79E',
+                                300: '#FFA969',
+                                400: '#FF8C42',
+                                500: '#F97316',
+                                600: '#E4600C',
+                                700: '#C44E06',
+                                800: '#9A3D05',
+                                900: '#7A2F03',
+                            },
+
+                            /* Trust Blue */
+                            secondary: {
+                                50:  '#EFF6FF',
+                                100: '#DBEAFE',
+                                200: '#BFDBFE',
+                                300: '#93C5FD',
+                                400: '#60A5FA',
+                                500: '#3B82F6',
+                                600: '#2563EB',
+                                700: '#1D4ED8',
+                                800: '#1E40AF',
+                                900: '#1E3A8A',
+                            },
+
+                            /* Success Green */
+                            success: {
+                                50:  '#ECFDF5',
+                                100: '#D1FAE5',
+                                200: '#A7F3D0',
+                                300: '#6EE7B7',
+                                400: '#34D399',
+                                500: '#10B981',
+                                600: '#059669',
+                                700: '#047857',
+                                800: '#065F46',
+                                900: '#064E3B',
+                            },
+
+                            /* Accent Pink */
+                            accent: {
+                                DEFAULT: '#F43F5E',
+                                light: '#FDA4AF',
+                                dark: '#E11D48',
+                            },
+
+                            /* Dark Theme */
+                            dark: {
+                                900: '#0F172A',
+                                800: '#1E293B',
+                                700: '#334155',
+                            }
+                        },
+
+                        borderRadius: {
+                            xl: '14px',
+                            '2xl': '18px',
+                        },
+
+                        boxShadow: {
+                            soft: '0 10px 25px rgba(0,0,0,0.05)',
+                            glow: '0 0 25px rgba(249,115,22,0.35)',
+                        },
+
+                        animation: {
+                            'fade-in': 'fadeIn 0.6s ease-out',
+                            'float': 'float 3s ease-in-out infinite',
+                            'slide-up': 'slideUp 0.3s ease-out',
+                        },
+
+                        keyframes: {
+                            fadeIn: {
+                                '0%': { opacity: '0' },
+                                '100%': { opacity: '1' },
+                            },
+                            float: {
+                                '0%, 100%': { transform: 'translateY(0px)' },
+                                '50%': { transform: 'translateY(-10px)' },
+                            },
+                            slideUp: {
+                                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                                '100%': { transform: 'translateY(0)', opacity: '1' },
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+        <!-- Lucide Icons -->
+        <script src="https://unpkg.com/lucide@latest"></script>
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+        <style>
+            html { scroll-behavior: smooth; }
+            body { font-family: 'Inter', sans-serif; }
+
+            /* Pet-themed gradient background */
+            .gradient-hero {
+                background: linear-gradient(135deg, #F97316 0%, #F43F5E 100%);
+            }
+
+            .gradient-soft {
+                background: linear-gradient(135deg, #FFF4EC 0%, #EFF6FF 100%);
+            }
+
+            /* Glass card */
+            .glass-card {
+                background: rgba(255,255,255,0.8);
+                backdrop-filter: blur(10px);
+                border-radius: 18px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            }
+
+            @keyframes glow {
+                from { box-shadow: 0 0 10px rgba(249,115,22,0.5); }
+                to { box-shadow: 0 0 20px rgba(249,115,22,0.5); }
+            }
+
+            /* Button Glow */
+            .btn-primary-glow:hover {   
+                animation: glow 0.5s ease-out infinite alternate;
+                box-shadow: 0 0 25px rgba(249,115,22,0.5);
+            }
+
+            /* Loading overlay */
+            #loading-overlay {
+                position: fixed;
+                inset: 0;
+                background: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                transition: opacity 0.5s ease-out, visibility 0.5s;
+            }
+
+            #loading-overlay.hidden-overlay {
+                display: none !important;
+            }
+
+            #loading-overlay.fade-out {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            #loading-overlay video {
+                max-width: 300px;
+                width: 80%;
+                height: auto;
+            }
+        </style>
+
+        {% block extra_head %}{% endblock %}
+    </head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <script>
+            // PRE-RENDER CHECK: Hide immediately if already played this session
+            if (sessionStorage.getItem('piba_animation_played')) {
+                document.getElementById('loading-overlay').classList.add('hidden-overlay');
+            }
+        </script>
+        <video autoplay muted playsinline loop>
+            <source src="{% static 'images/logo/PIBA logo animation.mp4' %}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    <!-- Navbar -->
+    {% include 'components/navbar.html' %}
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+
+    <!-- Login Required Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeLoginModal()"></div>
+        <!-- Modal Content -->
+        <div class="relative bg-white rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl animate-slide-up">
+            <!-- Close Button -->
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5 text-gray-400"></i>
+            </button>
+            <!-- Icon -->
+            <div class="w-20 h-20 mx-auto mb-6 bg-primary-50 rounded-full flex items-center justify-center">
+                <i data-lucide="lock" class="w-10 h-10 text-primary-500"></i>
+            </div>
+            <!-- Text -->
+            <h3 class="text-2xl font-bold text-dark-800 text-center mb-2">Login Required</h3>
+            <p id="login-modal-message" class="text-gray-500 text-center mb-8">Please sign in to continue</p>
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <a id="login-modal-signin" href="/login/" 
+                   class="block w-full bg-primary-500 hover:bg-primary-600 text-white py-3 rounded-xl font-semibold text-center transition btn-primary-glow">
+                    Sign In
+                </a>
+                <a id="login-modal-signup" href="/register/" 
+                   class="block w-full bg-gray-100 hover:bg-gray-200 text-dark-800 py-3 rounded-xl font-semibold text-center transition">
+                    Create an Account
+                </a>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-5">You'll be redirected back to this page after signing in</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include 'components/footer.html' %}
+
+    <!-- Base JavaScript -->
+    <script src="{% static 'js/base.js' %}"></script>
+
+    <!-- API Helper -->
+    <script>
+        // JWT Token Management
+        const AUTH = {
+            getToken: () => localStorage.getItem('access_token'),
+            getRefresh: () => localStorage.getItem('refresh_token'),
+            setTokens: (access, refresh) => {
+                localStorage.setItem('access_token', access);
+                localStorage.setItem('refresh_token', refresh);
+            },
+            clearTokens: () => {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+            }
+        };
+
+        // API Helper
+        const API = {
+            async fetch(url, options = {}) {
+                const token = AUTH.getToken();
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                try {
+                    const response = await fetch(url, { ...options, headers });
+                    
+                    if (response.status === 401) {
+                        // Try to refresh token
+                        const refreshed = await this.refreshToken();
+                        if (refreshed) {
+                            headers['Authorization'] = `Bearer ${AUTH.getToken()}`;
+                            return fetch(url, { ...options, headers });
+                        } else {
+                            AUTH.clearTokens();
+                            window.location.href = '/login/';
+                            return null;
+                        }
+                    }
+                    
+                    return response;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    throw error;
+                }
+            },
+
+            async refreshToken() {
+                const refresh = AUTH.getRefresh();
+                if (!refresh) return false;
+
+                try {
+                    const response = await fetch('/api/v1/auth/token/refresh/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        localStorage.setItem('access_token', data.access);
+                        return true;
+                    }
+                    return false;
+                } catch {
+                    return false;
+                }
+            },
+
+            get: (url) => API.fetch(url),
+            
+            post: (url, data) => API.fetch(url, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            }),
+
+            patch: (url, data) => API.fetch(url, {
+                method: 'PATCH',
+                body: JSON.stringify(data)
+            }),
+
+            delete: (url) => API.fetch(url, { method: 'DELETE' })
+        };
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-success-500',
+                error: 'bg-red-500',
+                info: 'bg-secondary-500',
+                warning: 'bg-yellow-500'
+            };
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${colors[type]} text-white px-6 py-3 rounded-xl shadow-lg flex items-center space-x-2`;
+            toast.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-80">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Check if user is logged in (JWT token exists)
+        function isLoggedIn() {
+            return !!AUTH.getToken();
+        }
+
+        // Login modal functions
+        function showLoginModal(message) {
+            const modal = document.getElementById('login-modal');
+            const msgEl = document.getElementById('login-modal-message');
+            const signinLink = document.getElementById('login-modal-signin');
+            const signupLink = document.getElementById('login-modal-signup');
+            const returnUrl = encodeURIComponent(window.location.pathname);
+
+            msgEl.textContent = message || 'Please sign in to continue';
+            signinLink.href = '/login/?next=' + returnUrl;
+            signupLink.href = '/register/?next=' + returnUrl;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeLoginModal() {
+            const modal = document.getElementById('login-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLoginModal();
+        });
+
+        // Cart functions
+        async function addToCart(petId) {
+            if (!isLoggedIn()) {
+                showLoginModal('Please sign in to add items to your cart');
+                return;
+            }
+            try {
+                const response = await API.post('/api/v1/cart/add/', { pet_id: petId });
+                if (!response) return; // redirect already happening
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast('Added to cart! 🛒', 'success');
+                    updateCartCount(data.cart.total_items);
+                } else {
+                    showToast(data.error || 'Failed to add to cart', 'error');
+                }
+            } catch {
+                showToast('Failed to add to cart', 'error');
+            }
+        }
+
+        function updateCartCount(count) {
+            const badge = document.getElementById('cart-count');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+
+        // Wishlist functions
+        async function toggleWishlist(petId) {
+            if (!isLoggedIn()) {
+                showLoginModal('Please sign in to save pets to your wishlist');
+                return;
+            }
+            showToast('Wishlist feature coming soon!', 'info');
+        }
+
+        // Initialize icons and loading overlay
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadStartTime = Date.now();
+            lucide.createIcons();
+            
+            const overlay = document.getElementById('loading-overlay');
+            const animationPlayed = sessionStorage.getItem('piba_animation_played');
+
+            // Hide loading overlay when everything is loaded
+            window.addEventListener('load', () => {
+                if (overlay) {
+                    if (animationPlayed) {
+                        // Skip animation if already played
+                        overlay.remove();
+                    } else {
+                        // Enforce min 4s on first load
+                        const elapsedTime = Date.now() - loadStartTime;
+                        const minDuration = 4000; // 4 seconds
+                        const delay = Math.max(0, minDuration - elapsedTime);
+                        
+                        setTimeout(() => {
+                            overlay.classList.add('fade-out');
+                            sessionStorage.setItem('piba_animation_played', 'true');
+                            setTimeout(() => overlay.remove(), 500);
+                        }, delay);
+                    }
+                }
+            });
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

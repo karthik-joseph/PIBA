@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Pets - PIBA Seller{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-dark-800">My Pet Listings</h1>
+            <p class="text-gray-500 mt-1">Manage and update your pet listings</p>
+        </div>
+        <a href="{% url 'seller_add_pet' %}"
+           class="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2 rounded-xl font-semibold flex items-center gap-2 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add Pet
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex gap-2 mb-6">
+        <button onclick="filterByStatus('')" class="filter-tab px-4 py-2 rounded-xl font-medium text-sm transition bg-primary-500 text-white" data-status="">All</button>
+        <button onclick="filterByStatus('available')" class="filter-tab px-4 py-2 rounded-xl font-medium text-sm transition bg-white text-dark-700 hover:bg-gray-50 border" data-status="available">Available</button>
+        <button onclick="filterByStatus('sold')" class="filter-tab px-4 py-2 rounded-xl font-medium text-sm transition bg-white text-dark-700 hover:bg-gray-50 border" data-status="sold">Sold</button>
+        <button onclick="filterByStatus('reserved')" class="filter-tab px-4 py-2 rounded-xl font-medium text-sm transition bg-white text-dark-700 hover:bg-gray-50 border" data-status="reserved">Reserved</button>
+    </div>
+
+    <div id="pets-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
+
+    <div id="pets-empty" class="hidden text-center py-16">
+        <i data-lucide="paw-print" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <h3 class="text-xl font-bold text-dark-800 mb-3">No pets found</h3>
+        <a href="{% url 'seller_add_pet' %}" class="text-primary-600 font-medium">Add your first pet →</a>
+    </div>
+
+    <div id="pets-grid" class="hidden">
+        <!-- Pets table -->
+        <div class="bg-white rounded-2xl shadow-soft overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left py-4 px-5 text-sm font-semibold text-gray-600">Pet</th>
+                        <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden sm:table-cell">Category</th>
+                        <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden md:table-cell">Price</th>
+                        <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">Status</th>
+                        <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">Approved</th>
+                        <th class="text-right py-4 px-5 text-sm font-semibold text-gray-600">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pets-tbody" class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allPets = [];
+let currentStatus = '';
+
+async function loadPets() {
+    try {
+        const response = await API.get('/api/v1/pets/my-listings/');
+        const data = await response.json();
+        allPets = data.results || data || [];
+        renderPets();
+    } catch {
+        document.getElementById('pets-loading').classList.add('hidden');
+        document.getElementById('pets-empty').classList.remove('hidden');
+    }
+}
+
+function renderPets() {
+    document.getElementById('pets-loading').classList.add('hidden');
+    
+    const filtered = currentStatus ? allPets.filter(p => p.status === currentStatus) : allPets;
+    
+    if (filtered.length === 0) {
+        document.getElementById('pets-empty').classList.remove('hidden');
+        document.getElementById('pets-grid').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('pets-empty').classList.add('hidden');
+    document.getElementById('pets-grid').classList.remove('hidden');
+    
+    const tbody = document.getElementById('pets-tbody');
+    tbody.innerHTML = filtered.map(pet => `
+        <tr class="hover:bg-gray-50 transition">
+            <td class="py-4 px-5">
+                <div class="flex items-center gap-3">
+                    <img src="${pet.primary_image_url}" alt="${pet.name}"
+                         class="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                         onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                    <div>
+                        <p class="font-semibold text-dark-800">${pet.name}</p>
+                        <p class="text-sm text-gray-500">${pet.breed_name || 'Mixed'}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="py-4 px-4 hidden sm:table-cell">
+                <span class="text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded">${pet.category_name}</span>
+            </td>
+            <td class="py-4 px-4 hidden md:table-cell">
+                <p class="font-semibold text-dark-800">₹${parseInt(pet.price).toLocaleString()}</p>
+            </td>
+            <td class="py-4 px-4 hidden lg:table-cell">
+                <span class="text-xs px-2 py-1 rounded-full ${
+                    pet.status === 'available' ? 'bg-success-100 text-success-700'
+                    : pet.status === 'sold' ? 'bg-gray-100 text-gray-600'
+                    : 'bg-yellow-100 text-yellow-700'
+                } capitalize">${pet.status}</span>
+            </td>
+            <td class="py-4 px-4 hidden lg:table-cell">
+                ${pet.is_approved 
+                    ? '<span class="text-xs text-success-600 flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Approved</span>'
+                    : '<span class="text-xs text-yellow-600 flex items-center gap-1"><i data-lucide="clock" class="w-4 h-4"></i> Pending</span>'
+                }
+            </td>
+            <td class="py-4 px-5">
+                <div class="flex items-center justify-end gap-2">
+                    <a href="/pets/${pet.slug}/" target="_blank"
+                       class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition" title="View">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                    </a>
+                    <a href="/seller/pets/${pet.slug}/edit/"
+                       class="p-2 bg-secondary-100 hover:bg-secondary-200 text-secondary-700 rounded-lg transition" title="Edit">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    lucide.createIcons();
+}
+
+function filterByStatus(status) {
+    currentStatus = status;
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        const isActive = tab.dataset.status === status;
+        tab.className = `filter-tab px-4 py-2 rounded-xl font-medium text-sm transition ${isActive ? 'bg-primary-500 text-white' : 'bg-white text-dark-700 hover:bg-gray-50 border'}`;
+    });
+    renderPets();
+}
+
+document.addEventListener('DOMContentLoaded', loadPets);
+</script>
+{% endblock %}

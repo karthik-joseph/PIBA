@@ -1,0 +1,81 @@
+{% load static %}
+
+<!-- Footer -->
+<footer class="bg-dark-900 text-white relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-1">
+                <div class="flex items-center space-x-2 mb-4">
+                    <img src="{% static 'images/logo/piba_logo_200x200.png' %}" alt="PIBA" class="h-10 w-10">
+                    <span class="font-logo text-xl font-bold text-primary-400">PIBA</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-4">
+                    Your trusted platform for finding the perfect pet companion. Safe, verified, and responsible pet adoption.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-primary-400 transition">
+                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-primary-400 transition">
+                        <i data-lucide="instagram" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-primary-400 transition">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Quick Links</h4>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'pet_listing' %}" class="text-gray-400 hover:text-primary-400 transition text-sm">Browse Pets</a></li>
+                    <li><a href="{% url 'pet_listing' %}?listing_type=adoption" class="text-gray-400 hover:text-primary-400 transition text-sm">Adopt a Pet</a></li>
+                    <li><a href="{% url 'seller_register' %}" class="text-gray-400 hover:text-primary-400 transition text-sm">Become a Seller</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-primary-400 transition text-sm">Pet Care Tips</a></li>
+                </ul>
+            </div>
+
+            <!-- Categories -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Categories</h4>
+                <ul class="space-y-2" id="footer-categories">
+                    <li><a href="/pets/category/dogs/" class="text-gray-400 hover:text-primary-400 transition text-sm">Dogs</a></li>
+                    <li><a href="/pets/category/cats/" class="text-gray-400 hover:text-primary-400 transition text-sm">Cats</a></li>
+                    <li><a href="/pets/category/birds/" class="text-gray-400 hover:text-primary-400 transition text-sm">Birds</a></li>
+                    <li><a href="/pets/category/fish/" class="text-gray-400 hover:text-primary-400 transition text-sm">Fish</a></li>
+                </ul>
+            </div>
+
+            <!-- Support -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Support</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-primary-400 transition text-sm">Help Center</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-primary-400 transition text-sm">Contact Us</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-primary-400 transition text-sm">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-primary-400 transition text-sm">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="border-t border-dark-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 text-sm">
+                &copy; {% now "Y" %} PIBA. All rights reserved.
+            </p>
+            <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                <span class="text-gray-400 text-sm">Made with</span>
+                <i data-lucide="heart" class="w-4 h-4 text-primary-500"></i>
+                <span class="text-gray-400 text-sm">for pet lovers</span>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+});
+</script>

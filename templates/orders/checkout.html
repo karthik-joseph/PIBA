@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-dark-800">Checkout</h1>
+        <p class="text-gray-500 mt-1">Complete your order</p>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="flex items-center justify-center mb-10">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-success-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
+                <span class="font-medium text-gray-600">Cart</span>
+            </div>
+            <div class="w-16 h-px bg-gray-300"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center text-sm font-bold">2</div>
+                <span class="font-medium text-primary-600">Checkout</span>
+            </div>
+            <div class="w-16 h-px bg-gray-300"></div>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
+                <span class="text-gray-500">Payment</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left: Checkout Form -->
+        <div class="lg:col-span-2">
+            <form id="checkout-form" class="space-y-6">
+                <!-- Shipping Address -->
+                <div class="bg-white rounded-2xl shadow-soft p-6">
+                    <h2 class="text-xl font-bold text-dark-800 mb-6 flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-5 h-5 text-primary-500"></i>
+                        Shipping Address
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Full Address *</label>
+                            <textarea name="shipping_address" required rows="2"
+                                      class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition resize-none"
+                                      placeholder="House No., Street, Area">{{ request.user.profile.address }}</textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-dark-700 mb-2">City *</label>
+                                <input type="text" name="shipping_city" required
+                                       value="{{ request.user.profile.city }}"
+                                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                                       placeholder="City">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-dark-700 mb-2">State *</label>
+                                <input type="text" name="shipping_state" required
+                                       value="{{ request.user.profile.state }}"
+                                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                                       placeholder="State">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-dark-700 mb-2">Postal Code *</label>
+                                <input type="text" name="shipping_postal_code" required
+                                       value="{{ request.user.profile.postal_code }}"
+                                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                                       placeholder="PIN Code">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-dark-700 mb-2">Country *</label>
+                                <input type="text" name="shipping_country" required value="India"
+                                       class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="bg-white rounded-2xl shadow-soft p-6">
+                    <h2 class="text-xl font-bold text-dark-800 mb-6 flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-5 h-5 text-primary-500"></i>
+                        Payment Method
+                    </h2>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-4 p-4 border-2 border-primary-300 rounded-xl cursor-pointer bg-primary-50">
+                            <input type="radio" name="payment_method" value="upi" checked class="accent-primary-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                    <i data-lucide="smartphone" class="w-5 h-5 text-primary-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-dark-800">UPI / GPay / PhonePe</p>
+                                    <p class="text-sm text-gray-500">Instant payment via UPI</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition">
+                            <input type="radio" name="payment_method" value="card" class="accent-primary-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-dark-800">Credit / Debit Card</p>
+                                    <p class="text-sm text-gray-500">Visa, Mastercard, RuPay</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition">
+                            <input type="radio" name="payment_method" value="cod" class="accent-primary-500">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="banknote" class="w-5 h-5 text-gray-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-dark-800">Cash on Delivery</p>
+                                    <p class="text-sm text-gray-500">Pay when pet arrives</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="bg-white rounded-2xl shadow-soft p-6">
+                    <h2 class="text-lg font-bold text-dark-800 mb-4">Order Notes (Optional)</h2>
+                    <textarea name="buyer_notes" rows="3"
+                              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition resize-none"
+                              placeholder="Any special instructions or requests..."></textarea>
+                </div>
+
+                <div id="checkout-error" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-sm"></div>
+
+                <button type="submit" id="place-order-btn"
+                        class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-bold text-lg transition btn-primary-glow flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    <span>Place Order</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Order Summary (Razorpay Style) -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 sticky top-24">
+                <!-- Summary Header -->
+                <div class="bg-dark-900 p-6 text-white">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-xl font-bold">Checkout Summary</h2>
+                        <i data-lucide="shield-check" class="w-6 h-6 text-emerald-400"></i>
+                    </div>
+                    <p class="text-blue-200 text-sm flex items-center gap-2">
+                        <i data-lucide="lock" class="w-3 h-3"></i>
+                        100% Secure Checkout
+                    </p>
+                </div>
+
+                <div class="p-6">
+                    <!-- Items List -->
+                    <div class="mb-6">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Items Summary</h3>
+                        <div id="order-summary-items" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div class="text-center py-4"><div class="spinner mx-auto"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="space-y-3 pt-6 border-t border-gray-100">
+                        <div class="flex justify-between text-gray-500 text-sm">
+                            <span>Order Subtotal</span>
+                            <span id="order-subtotal" class="font-medium text-dark-800">₹0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 text-sm">
+                            <span class="flex items-center gap-1">
+                                GST (18%)
+                                <i data-lucide="info" class="w-3 h-3 cursor-help opacity-50"></i>
+                            </span>
+                            <span id="order-tax" class="font-medium text-dark-800">₹0</span>
+                        </div>
+                        <div class="flex justify-between text-gray-500 text-sm">
+                            <span>Handling Fee</span>
+                            <span class="text-emerald-500 font-bold">FREE</span>
+                        </div>
+                        
+                        <div class="pt-4 mt-2 border-t-2 border-dashed border-gray-100">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-xs text-gray-400 font-bold uppercase tracking-tight">Total Amount</p>
+                                    <p class="text-3xl font-black text-dark-900 leading-none" id="order-total">₹0</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg border border-emerald-100 uppercase">Saving ₹199</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trust Indicators -->
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-wrap justify-center gap-4 grayscale opacity-50">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Razorpay_logo.original.png" alt="Razorpay" class="h-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/UPI-Logo.png/800px-UPI-Logo.png" alt="UPI" class="h-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" class="h-4">
+                    </div>
+                </div>
+                
+                <!-- Security Note -->
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                        <i data-lucide="medal" class="w-4 h-4 text-amber-500"></i>
+                    </div>
+                    <p class="text-[10px] text-gray-500 leading-tight">
+                        <span class="font-bold text-dark-700 block">PIBA Protection</span>
+                        Safe delivery guarantee with every purchase
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadCartSummary() {
+    try {
+        const response = await API.get('/api/v1/cart/');
+        const data = await response.json();
+        
+        const container = document.getElementById('order-summary-items');
+        if (!data.items || data.items.length === 0) {
+            window.location.href = '{% url "cart" %}';
+            return;
+        }
+        
+        container.innerHTML = data.items.map(item => `
+            <div class="flex items-center gap-4 group">
+                <div class="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative">
+                    <img src="${item.pet.primary_image_url || '/static/images/placeholder/default_pet_image.png'}"
+                         alt="${item.pet.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                         onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-dark-800 text-sm truncate uppercase tracking-tight">${item.pet.name}</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${item.pet.category_name}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-black text-dark-900 text-sm">₹${parseInt(item.pet.price).toLocaleString('en-IN')}</p>
+                </div>
+            </div>
+        `).join('');
+        
+        const subtotal = data.items.reduce((sum, item) => sum + parseFloat(item.pet.price), 0);
+        const tax = subtotal * 0.18;
+        const total = subtotal + tax;
+        
+        document.getElementById('order-subtotal').textContent = `₹${Math.round(subtotal).toLocaleString('en-IN')}`;
+        document.getElementById('order-tax').textContent = `₹${Math.round(tax).toLocaleString('en-IN')}`;
+        document.getElementById('order-total').textContent = `₹${Math.round(total).toLocaleString('en-IN')}`;
+        lucide.createIcons();
+    } catch(e) { console.error(e); }
+}
+
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('place-order-btn');
+    const errorDiv = document.getElementById('checkout-error');
+    const formData = new FormData(this);
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    errorDiv.classList.add('hidden');
+    
+    const payload = {};
+    formData.forEach((v, k) => { payload[k] = v; });
+    
+    try {
+        const response = await API.fetch('/api/v1/checkout/', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        
+        if (response.ok && data.orders && data.orders.length > 0) {
+            showToast('Order placed successfully!', 'success');
+            const orderNumber = data.orders[0].order_number;
+            setTimeout(() => {
+                window.location.href = `/payment/${orderNumber}/`;
+            }, 500);
+        } else {
+            const msg = data.error || Object.values(data).flat().join(' ') || 'Checkout failed';
+            errorDiv.textContent = msg;
+            errorDiv.classList.remove('hidden');
+        }
+    } catch {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-6 h-6"></i><span>Place Order</span>';
+        lucide.createIcons();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', loadCartSummary);
+</script>
+{% endblock %}

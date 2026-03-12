@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Adopt {{ pet.name }} - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+            <a href="/" class="hover:text-primary-600">Home</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <a href="/pets/{{ pet.slug }}/" class="hover:text-primary-600">{{ pet.name }}</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <span class="text-dark-800">Adopt</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-dark-800">Adopt {{ pet.name }}</h1>
+        <p class="text-gray-500 mt-1">Fill out this form to apply for adoption</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Pet Card -->
+        <div>
+            <div class="bg-white rounded-2xl shadow-soft overflow-hidden sticky top-24">
+                <img src="{{ pet.primary_image_url }}" alt="{{ pet.name }}"
+                     class="w-full aspect-[4/3] object-cover"
+                     onerror="this.src='{% static 'images/placeholder/default_pet_image.png' %}'">
+                <div class="p-5">
+                    <span class="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">{{ pet.category.name }}</span>
+                    <h2 class="text-xl font-bold text-dark-800 mt-2">{{ pet.name }}</h2>
+                    {% if pet.breed %}
+                        <p class="text-gray-500 text-sm">{{ pet.breed.name }}</p>
+                    {% endif %}
+                    <div class="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                        <span>{{ pet.age_display|default:"Unknown age" }}</span>
+                        <span>·</span>
+                        <span class="capitalize">{{ pet.gender }}</span>
+                    </div>
+                    <div class="mt-3 bg-success-50 p-3 rounded-xl text-sm text-success-700 font-medium text-center">
+                        Free Adoption 🐾
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Application Form -->
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-2xl shadow-soft p-8">
+                <form id="adoption-form" class="space-y-5">
+                    <h2 class="text-xl font-bold text-dark-800">About You</h2>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Full Name *</label>
+                            <input type="text" name="applicant_name" required
+                                   value="{{ request.user.get_full_name }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Phone *</label>
+                            <input type="tel" name="applicant_phone" required
+                                   value="{{ request.user.phone_number }}"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Address *</label>
+                        <textarea name="applicant_address" required rows="2"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none resize-none"
+                                  placeholder="Your complete address"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Housing Type *</label>
+                        <select name="housing_type" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                            <option value="apartment">Apartment</option>
+                            <option value="house">House with yard</option>
+                            <option value="villa">Villa/Bungalow</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Household Members</label>
+                            <input type="number" name="household_members" min="1" max="20"
+                                   value="1"
+                                   class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-dark-700 mb-2">Any Children?</label>
+                            <select name="has_children" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Pet Experience</label>
+                        <select name="pet_experience" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                            <option value="none">No previous pets</option>
+                            <option value="some">Had pets before</option>
+                            <option value="current">Currently have pets</option>
+                            <option value="experienced">Very experienced</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Why do you want to adopt {{ pet.name }}? *</label>
+                        <textarea name="reason" required rows="4"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none resize-none"
+                                  placeholder="Tell us why you'd be a great home for this pet..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Additional Notes</label>
+                        <textarea name="additional_info" rows="2"
+                                  class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none resize-none"
+                                  placeholder="Any other information you'd like to share..."></textarea>
+                    </div>
+
+                    <div class="bg-primary-50 p-4 rounded-xl text-sm text-primary-800">
+                        <p class="font-semibold">What happens next?</p>
+                        <p class="mt-1 opacity-80">The seller will review your application and contact you within 2-3 business days.</p>
+                    </div>
+
+                    <div id="adopt-error" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-sm"></div>
+
+                    <button type="submit" id="adopt-btn"
+                            class="w-full bg-success-500 hover:bg-success-600 text-white py-4 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                        <span>Submit Adoption Application</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('adoption-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('adopt-btn');
+    const errDiv = document.getElementById('adopt-error');
+    const formData = new FormData(this);
+    
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    errDiv.classList.add('hidden');
+    
+    const payload = {
+        pet_id: {{ pet.id }},
+        applicant_name: formData.get('applicant_name'),
+        applicant_phone: formData.get('applicant_phone'),
+        applicant_address: formData.get('applicant_address'),
+        housing_type: formData.get('housing_type'),
+        household_members: parseInt(formData.get('household_members')),
+        has_children: formData.get('has_children') === 'yes',
+        pet_experience: formData.get('pet_experience'),
+        reason: formData.get('reason'),
+        additional_info: formData.get('additional_info'),
+    };
+    
+    try {
+        const response = await API.fetch('/api/v1/adoption/apply/', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Application submitted! The seller will contact you soon.', 'success');
+            setTimeout(() => window.location.href = '{% url "my_adoption_requests" %}', 1000);
+        } else {
+            const msg = typeof data === 'object' ? Object.values(data).flat().join(' ') : 'Submission failed.';
+            errDiv.textContent = msg;
+            errDiv.classList.remove('hidden');
+        }
+    } catch {
+        errDiv.textContent = 'An error occurred. Please try again.';
+        errDiv.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="heart" class="w-5 h-5"></i><span>Submit Adoption Application</span>';
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

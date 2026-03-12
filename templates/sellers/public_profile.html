@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ seller.business_name|default:seller.user.get_full_name }} - Seller Profile | PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+    <!-- Seller Header -->
+    <div class="bg-gradient-to-r from-primary-500 to-orange-400 rounded-2xl p-8 mb-8 text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10"></div>
+        <div class="relative flex items-start gap-6">
+            <div class="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur">
+                <i data-lucide="store" class="w-12 h-12 text-white"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <h1 class="text-3xl font-bold">{{ seller.business_name|default:seller.user.get_full_name }}</h1>
+                    {% if seller.is_verified %}
+                        <span class="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur">
+                            <i data-lucide="badge-check" class="w-4 h-4"></i> Verified
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="text-white/80 capitalize">{{ seller.get_business_type_display }}</p>
+                <div class="flex flex-wrap items-center gap-4 mt-3 text-white/80 text-sm">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        {{ seller.city }}, {{ seller.state }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        Member since {{ seller.created_at|date:"M Y" }}
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="paw-print" class="w-4 h-4"></i>
+                        {{ pets|length }} pets listed
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left -->
+        <div class="space-y-6">
+            <!-- About -->
+            {% if seller.description %}
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <h2 class="font-bold text-dark-800 mb-3">About</h2>
+                <p class="text-gray-600 text-sm leading-relaxed">{{ seller.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Contact -->
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <h2 class="font-bold text-dark-800 mb-4">Contact</h2>
+                <div class="space-y-3">
+                    {% if seller.phone %}
+                    <a href="tel:{{ seller.phone }}" class="flex items-center gap-3 text-gray-700 hover:text-primary-600 transition">
+                        <div class="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center">
+                            <i data-lucide="phone" class="w-4 h-4 text-primary-600"></i>
+                        </div>
+                        {{ seller.phone }}
+                    </a>
+                    {% endif %}
+                    {% if seller.email %}
+                    <a href="mailto:{{ seller.email }}" class="flex items-center gap-3 text-gray-700 hover:text-primary-600 transition">
+                        <div class="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center">
+                            <i data-lucide="mail" class="w-4 h-4 text-primary-600"></i>
+                        </div>
+                        {{ seller.email }}
+                    </a>
+                    {% endif %}
+                    {% if seller.website %}
+                    <a href="{{ seller.website }}" target="_blank" class="flex items-center gap-3 text-gray-700 hover:text-primary-600 transition">
+                        <div class="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center">
+                            <i data-lucide="globe" class="w-4 h-4 text-primary-600"></i>
+                        </div>
+                        Visit Website
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="bg-white rounded-2xl shadow-soft p-6">
+                <h2 class="font-bold text-dark-800 mb-4">Stats</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-primary-600">{{ pet_count }}</p>
+                        <p class="text-xs text-gray-500">Pets Listed</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-success-600" id="sold-count">—</p>
+                        <p class="text-xs text-gray-500">Pets Sold</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Listings -->
+        <div class="lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-dark-800">Available Pets</h2>
+                <span class="text-sm text-gray-500" id="listing-count">Loading...</span>
+            </div>
+            <div id="seller-pets" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="col-span-full text-center py-12"><div class="spinner mx-auto"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadSellerPets() {
+    try {
+        const response = await fetch('/api/v1/pets/?seller_id={{ seller.id }}&status=available&ordering=-created_at');
+        const data = await response.json();
+        const pets = data.results || data;
+        
+        document.getElementById('listing-count').textContent = `${pets.length} pet${pets.length !== 1 ? 's' : ''} available`;
+        
+        const container = document.getElementById('seller-pets');
+        
+        if (pets.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <i data-lucide="paw-print" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                    <p class="text-gray-500">No pets available at this time</p>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+        
+        container.innerHTML = pets.map(pet => `
+            <div class="bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
+                <a href="/pets/${pet.slug}/">
+                    <div class="aspect-[4/3] overflow-hidden relative">
+                        <img src="${pet.primary_image_url}" alt="${pet.name}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                             onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                        ${pet.listing_type === 'adoption' ? '<span class="absolute top-3 left-3 bg-success-500 text-white text-xs px-2 py-1 rounded-lg">Free Adoption</span>' : ''}
+                    </div>
+                </a>
+                <div class="p-4">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">${pet.category_name}</span>
+                        ${pet.breed_name ? `<span class="text-xs text-gray-500">${pet.breed_name}</span>` : ''}
+                    </div>
+                    <h3 class="font-semibold text-dark-800 mb-1">
+                        <a href="/pets/${pet.slug}/" class="hover:text-primary-600 transition">${pet.name}</a>
+                    </h3>
+                    <div class="flex items-center justify-between mt-3">
+                        ${pet.listing_type === 'sale'
+                            ? `<span class="text-lg font-bold text-primary-600">₹${parseInt(pet.price).toLocaleString()}</span>`
+                            : '<span class="text-lg font-semibold text-success-600">Free</span>'}
+                        <span class="text-xs text-gray-500">${pet.age_display || ''} · ${pet.gender}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        lucide.createIcons();
+    } catch {
+        document.getElementById('seller-pets').innerHTML = `<div class="col-span-full text-center text-red-500">Failed to load listings</div>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadSellerPets);
+</script>
+{% endblock %}

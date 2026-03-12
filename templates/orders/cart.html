@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Cart - PIBA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-dark-800">My Cart</h1>
+        <p class="text-gray-500 mt-1">Review your selected pets before checkout</p>
+    </div>
+
+    <div id="cart-loading" class="text-center py-20">
+        <div class="spinner mx-auto"></div>
+        <p class="text-gray-500 mt-4">Loading your cart...</p>
+    </div>
+
+    <div id="cart-empty" class="hidden text-center py-20">
+        <div class="w-28 h-28 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="shopping-cart" class="w-14 h-14 text-gray-300"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-dark-800 mb-3">Your cart is empty</h2>
+        <p class="text-gray-500 mb-8">Browse our lovely pets and add one to your cart!</p>
+        <a href="{% url 'pet_listing' %}" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition btn-primary-glow">
+            Browse Pets
+        </a>
+    </div>
+
+    <div id="cart-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Cart Items -->
+        <div class="lg:col-span-2">
+            <div id="cart-items" class="space-y-4"></div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-soft p-6 sticky top-24">
+                <h2 class="text-xl font-bold text-dark-800 mb-6">Order Summary</h2>
+                
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span id="summary-subtotal">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>GST (18%)</span>
+                        <span id="summary-tax">₹0</span>
+                    </div>
+                    <div class="border-t pt-3 flex justify-between font-bold text-dark-800 text-lg">
+                        <span>Total</span>
+                        <span id="summary-total">₹0</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'checkout' %}" id="checkout-btn"
+                   class="block w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold text-center transition btn-primary-glow">
+                    Proceed to Checkout
+                </a>
+
+                <a href="{% url 'pet_listing' %}" class="block w-full text-center text-primary-600 hover:text-primary-700 mt-4 font-medium">
+                    Continue Browsing
+                </a>
+
+                <div class="mt-6 space-y-2">
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-success-500"></i>
+                        <span>Secure & verified transactions</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                        <i data-lucide="headphones" class="w-4 h-4 text-secondary-500"></i>
+                        <span>24/7 customer support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadCart() {
+    try {
+        const response = await API.get('/api/v1/cart/');
+        const data = await response.json();
+
+        document.getElementById('cart-loading').classList.add('hidden');
+
+        if (!data.items || data.items.length === 0) {
+            document.getElementById('cart-empty').classList.remove('hidden');
+            return;
+        }
+
+        document.getElementById('cart-content').classList.remove('hidden');
+
+        // Render items
+        const itemsContainer = document.getElementById('cart-items');
+        itemsContainer.innerHTML = data.items.map(item => `
+            <div class="bg-white rounded-2xl shadow-soft overflow-hidden flex items-center gap-4 p-4" id="cart-item-${item.id}">
+                <a href="/pets/${item.pet.slug}/">
+                    <img src="${item.pet.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" 
+                         alt="${item.pet.name}"
+                         class="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                         onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                </a>
+                <div class="flex-1 min-w-0">
+                    <span class="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">${item.pet.category_name}</span>
+                    <h3 class="font-semibold text-dark-800 mt-1">
+                        <a href="/pets/${item.pet.slug}/" class="hover:text-primary-600 transition">${item.pet.name}</a>
+                    </h3>
+                    <p class="text-sm text-gray-500">${item.pet.breed_name || ''} · ${item.pet.gender}</p>
+                    ${item.pet.is_vaccinated ? '<span class="text-xs text-success-600">✓ Vaccinated</span>' : ''}
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="text-xl font-bold text-primary-600">₹${parseInt(item.pet.price).toLocaleString()}</p>
+                    <button onclick="removeFromCart(${item.id})" 
+                            class="mt-2 text-sm text-red-500 hover:text-red-700 flex items-center gap-1 ml-auto transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Remove
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+
+        // Update summary
+        const subtotal = data.subtotal || data.items.reduce((sum, item) => sum + parseFloat(item.pet.price), 0);
+        const tax = subtotal * 0.18;
+        const total = subtotal + tax;
+
+        document.getElementById('summary-subtotal').textContent = `₹${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+        document.getElementById('summary-tax').textContent = `₹${tax.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+        document.getElementById('summary-total').textContent = `₹${total.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+    } catch (error) {
+        document.getElementById('cart-loading').classList.add('hidden');
+        document.getElementById('cart-empty').classList.remove('hidden');
+    }
+}
+
+async function removeFromCart(itemId) {
+    try {
+        const response = await API.fetch(`/api/v1/cart/remove/${itemId}/`, { method: 'DELETE' });
+        if (response.ok) {
+            document.getElementById(`cart-item-${itemId}`).remove();
+            showToast('Item removed from cart', 'info');
+            await loadCart();
+        }
+    } catch {
+        showToast('Failed to remove item', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadCart);
+</script>
+{% endblock %}

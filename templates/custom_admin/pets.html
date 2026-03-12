@@ -1,0 +1,163 @@
+{% extends 'custom_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Pet Management{% endblock %}
+{% block page_title %}Pet Management{% endblock %}
+{% block page_subtitle %}Approve, feature, and manage all pet listings{% endblock %}
+
+{% block content %}
+<div>
+    <div class="flex items-center justify-between mb-5">
+        <div></div>
+        <a href="{% url 'custom_admin:pet_add' %}"
+           class="flex items-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition text-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add New Pet
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl shadow-soft p-4 mb-6 flex flex-col sm:flex-row gap-4">
+        <div class="flex-1 relative">
+            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+            <input type="text" id="pet-search" placeholder="Search pets..."
+                   class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+        </div>
+        <select id="approved-filter" class="px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+            <option value="">All Pets</option>
+            <option value="false">Pending Approval</option>
+            <option value="true">Approved</option>
+        </select>
+    </div>
+
+    <div id="pets-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
+
+    <div id="pets-table" class="hidden bg-white rounded-2xl shadow-soft overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left py-4 px-5 text-sm font-semibold text-gray-600">Pet</th>
+                    <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden sm:table-cell">Seller</th>
+                    <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden md:table-cell">Price</th>
+                    <th class="text-left py-4 px-4 text-sm font-semibold text-gray-600 hidden lg:table-cell">Status</th>
+                    <th class="text-right py-4 px-5 text-sm font-semibold text-gray-600">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="pets-tbody" class="divide-y divide-gray-100"></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allPets = [];
+
+async function loadPets() {
+    try {
+        const approved = document.getElementById('approved-filter').value;
+        const url = '/admin-panel/api/pets/' + (approved !== '' ? `?is_approved=${approved}` : '');
+        const response = await API.get(url);
+        const data = await response.json();
+        allPets = data.results || data || [];
+        document.getElementById('pets-loading').classList.add('hidden');
+        renderPets(allPets);
+    } catch {
+        document.getElementById('pets-loading').classList.add('hidden');
+    }
+}
+
+function renderPets(pets) {
+    const tbody = document.getElementById('pets-tbody');
+    const table = document.getElementById('pets-table');
+    
+    if (!pets || pets.length === 0) { table.classList.add('hidden'); return; }
+    table.classList.remove('hidden');
+    
+    tbody.innerHTML = pets.map(pet => `
+        <tr class="hover:bg-gray-50 transition">
+            <td class="py-4 px-5">
+                <div class="flex items-center gap-3">
+                    <img src="${pet.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" alt="${pet.name}"
+                         class="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                         onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                    <div>
+                        <p class="font-semibold text-dark-800">${pet.name}</p>
+                        <p class="text-xs text-gray-500">${pet.category_name} · ${pet.breed_name || 'Mixed'}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="py-4 px-4 text-sm text-gray-600 hidden sm:table-cell">
+                ${pet.seller_business_name || pet.seller_name || '—'}
+            </td>
+            <td class="py-4 px-4 hidden md:table-cell">
+                <p class="font-semibold">₹${parseInt(pet.price).toLocaleString()}</p>
+            </td>
+            <td class="py-4 px-4 hidden lg:table-cell">
+                <div class="flex flex-col gap-1">
+                    <span class="text-xs px-2 py-0.5 rounded-full ${pet.is_approved ? 'bg-success-100 text-success-700' : 'bg-yellow-100 text-yellow-700'}">
+                        ${pet.is_approved ? '✓ Approved' : '⏳ Pending'}
+                    </span>
+                    <span class="text-xs text-gray-500 capitalize">${pet.status}</span>
+                </div>
+            </td>
+            <td class="py-4 px-5">
+                <div class="flex items-center justify-end gap-2">
+                    ${!pet.is_approved ? `
+                        <button onclick="approvePet(${pet.id}, true)" class="px-3 py-1.5 bg-success-100 hover:bg-success-200 text-success-700 text-xs font-semibold rounded-lg transition">
+                            Approve
+                        </button>
+                    ` : `
+                        <button onclick="approvePet(${pet.id}, false)" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">
+                            Unapprove
+                        </button>
+                    `}
+                    <button onclick="featurePet(${pet.id}, ${!pet.is_featured})" class="px-3 py-1.5 text-xs font-semibold rounded-lg transition
+                        ${pet.is_featured ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                        ${pet.is_featured ? '★ Featured' : '☆ Feature'}
+                    </button>
+                    <a href="/admin-panel/pets/${pet.id}/edit/" class="p-1.5 text-blue-400 hover:text-blue-600 transition" title="Edit">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </a>
+                    <a href="/pets/${pet.slug}/" target="_blank" class="p-1.5 text-gray-400 hover:text-gray-600 transition" title="View">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    lucide.createIcons();
+}
+
+async function approvePet(id, approved) {
+    try {
+        const response = await API.fetch(`/admin-panel/api/pets/${id}/approve/`, {
+            method: 'PATCH', body: JSON.stringify({ action: approved ? 'approve' : 'reject' })
+        });
+        if (response.ok) { showToast(approved ? 'Pet approved!' : 'Pet unapproved', 'success'); loadPets(); }
+    } catch { showToast('Failed', 'error'); }
+}
+
+async function featurePet(id, featured) {
+    try {
+        const response = await API.fetch(`/admin-panel/api/pets/${id}/feature/`, {
+            method: 'PATCH', body: JSON.stringify({ is_featured: featured })
+        });
+        if (response.ok) { showToast(featured ? 'Pet featured!' : 'Removed from featured', 'success'); loadPets(); }
+    } catch { showToast('Failed', 'error'); }
+}
+
+document.getElementById('pet-search').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    const filtered = allPets.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.category_name || '').toLowerCase().includes(q)
+    );
+    renderPets(filtered);
+});
+
+document.getElementById('approved-filter').addEventListener('change', loadPets);
+
+document.addEventListener('DOMContentLoaded', loadPets);
+</script>
+{% endblock %}

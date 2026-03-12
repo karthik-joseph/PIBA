@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Become a Seller - PIBA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen gradient-soft py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="store" class="w-10 h-10 text-primary-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-dark-800">Become a Seller</h1>
+            <p class="text-gray-600 mt-2">Join our verified seller network and reach thousands of pet lovers</p>
+        </div>
+
+        <!-- Benefits -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-xl p-4 text-center shadow-soft">
+                <i data-lucide="trending-up" class="w-8 h-8 text-primary-500 mx-auto mb-2"></i>
+                <p class="text-sm font-medium text-dark-700">Increased Sales</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 text-center shadow-soft">
+                <i data-lucide="shield-check" class="w-8 h-8 text-success-500 mx-auto mb-2"></i>
+                <p class="text-sm font-medium text-dark-700">Verified Badge</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 text-center shadow-soft">
+                <i data-lucide="users" class="w-8 h-8 text-secondary-500 mx-auto mb-2"></i>
+                <p class="text-sm font-medium text-dark-700">10k+ Buyers</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-soft p-8">
+            <form id="seller-register-form" class="space-y-6">
+                <h2 class="text-xl font-bold text-dark-800 border-b pb-4">Account Information</h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">First Name *</label>
+                        <input type="text" name="first_name" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="First name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Last Name</label>
+                        <input type="text" name="last_name"
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Last name">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Username *</label>
+                    <div class="relative">
+                        <i data-lucide="at-sign" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="text" name="username" required
+                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Choose a username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Email Address *</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="email" name="email" required
+                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Phone Number *</label>
+                    <div class="relative">
+                        <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="tel" name="phone_number" required
+                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="+91 9876543210">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Password *</label>
+                        <input type="password" name="password" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Strong password">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">Confirm Password *</label>
+                        <input type="password" name="password_confirm" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Confirm password">
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold text-dark-800 border-b pb-4 pt-2">Business Information</h2>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Business Name *</label>
+                    <div class="relative">
+                        <i data-lucide="building" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="text" name="business_name" required
+                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Your pet business name">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Business Type *</label>
+                    <select name="business_type" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
+                        <option value="individual">Individual Breeder</option>
+                        <option value="pet_shop">Pet Shop</option>
+                        <option value="shelter">Animal Shelter</option>
+                        <option value="kennel">Kennel/Cattery</option>
+                        <option value="rescue">Rescue Organization</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-dark-700 mb-2">Business Description</label>
+                    <textarea name="description" rows="3"
+                              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition resize-none"
+                              placeholder="Tell buyers about your business and pets you offer..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">City *</label>
+                        <input type="text" name="city" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Your city">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-dark-700 mb-2">State *</label>
+                        <input type="text" name="state" required
+                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition"
+                               placeholder="Your state">
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-medium text-amber-800">Verification Required</p>
+                            <p class="text-sm text-amber-700 mt-1">Your seller account will be reviewed by our admin team before you can list pets. This typically takes 1-2 business days.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="seller-error" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-sm"></div>
+
+                <!-- Submit -->
+                <button type="submit" id="seller-submit-btn"
+                        class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold transition btn-primary-glow flex items-center justify-center gap-2">
+                    <i data-lucide="store" class="w-5 h-5"></i>
+                    <span>Register as Seller</span>
+                </button>
+
+                <p class="text-center text-sm text-gray-600">
+                    Already have an account? <a href="{% url 'login' %}" class="text-primary-600 hover:text-primary-700 font-medium">Sign In</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('seller-register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('seller-submit-btn');
+    const errorDiv = document.getElementById('seller-error');
+    const formData = new FormData(this);
+
+    const password = formData.get('password');
+    const confirmPassword = formData.get('password_confirm');
+
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match.';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    errorDiv.classList.add('hidden');
+
+    const payload = {
+        username: formData.get('username'),
+        email: formData.get('email'),
+        first_name: formData.get('first_name'),
+        last_name: formData.get('last_name'),
+        phone_number: formData.get('phone_number'),
+        password: password,
+        password_confirm: confirmPassword,
+        business_name: formData.get('business_name'),
+        business_type: formData.get('business_type'),
+        description: formData.get('description'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+    };
+
+    try {
+        const response = await fetch('/api/v1/auth/seller/register/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            showToast('Seller account created! Pending admin verification.', 'success');
+            setTimeout(() => { window.location.href = '/'; }, 1000);
+        } else {
+            const errors = data;
+            let msg = typeof errors === 'object' ? Object.values(errors).flat().join(' ') : 'Registration failed.';
+            errorDiv.textContent = msg;
+            errorDiv.classList.remove('hidden');
+        }
+    } catch {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="store" class="w-5 h-5"></i><span>Register as Seller</span>';
+        lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

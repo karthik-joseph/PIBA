@@ -1,0 +1,204 @@
+{% load static %}
+
+<!-- Navigation -->
+<nav class="bg-white shadow-soft sticky top-0 z-50" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <a href="{% url 'home' %}" class="flex items-center space-x-2">
+                <img src="{% static 'images/logo/piba_logo_200x200.png' %}" alt="PIBA" class="h-10 w-10">
+                <span class="font-logo text-xl font-bold text-primary-600">PIBA</span>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'home' %}" class="text-dark-700 hover:text-primary-600 font-medium transition">Home</a>
+                <a href="{% url 'pet_listing' %}" class="text-dark-700 hover:text-primary-600 font-medium transition">Pets</a>
+                
+                <!-- Categories Dropdown -->
+                <div class="relative group">
+                    <button class="text-dark-700 hover:text-primary-600 font-medium transition flex items-center">
+                        Categories
+                        <i data-lucide="chevron-down" class="w-4 h-4 ml-1"></i>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <div class="py-2" id="category-dropdown">
+                            <!-- Categories loaded via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side -->
+            <div class="flex items-center space-x-4">
+                <!-- Search -->
+                <button id="search-toggle" class="p-2 text-dark-700 hover:text-primary-600 transition">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+
+                {% if user.is_authenticated %}
+                    <!-- Cart -->
+                    <a href="{% url 'cart' %}" class="relative p-2 text-dark-700 hover:text-primary-600 transition">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                    </a>
+
+                    <!-- User Menu -->
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 p-2 text-dark-700 hover:text-primary-600 transition">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full object-cover">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                    <span class="text-primary-600 font-semibold text-sm">{{ user.username|slice:":1"|upper }}</span>
+                                </div>
+                            {% endif %}
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-dark-800">{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <div class="py-2">
+                                <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">
+                                    <i data-lucide="user" class="w-4 h-4 mr-3"></i> My Profile
+                                </a>
+                                <a href="{% url 'order_history' %}" class="flex items-center px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">
+                                    <i data-lucide="package" class="w-4 h-4 mr-3"></i> My Orders
+                                </a>
+                                <a href="{% url 'wishlist' %}" class="flex items-center px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">
+                                    <i data-lucide="heart" class="w-4 h-4 mr-3"></i> Wishlist
+                                </a>
+                                {% if user.role == 'seller' %}
+                                    <a href="{% url 'seller_dashboard' %}" class="flex items-center px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">
+                                        <i data-lucide="store" class="w-4 h-4 mr-3"></i> Seller Dashboard
+                                    </a>
+                                {% endif %}
+                                {% if user.is_superuser or user.role == 'admin' %}
+                                    <a href="{% url 'custom_admin:dashboard' %}" class="flex items-center px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">
+                                        <i data-lucide="shield" class="w-4 h-4 mr-3"></i> Admin Panel
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div class="border-t border-gray-100 py-2">
+                                <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <i data-lucide="log-out" class="w-4 h-4 mr-3"></i> Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-dark-700 hover:text-primary-600 font-medium transition">Sign In</a>
+                    <a href="{% url 'register' %}" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-medium transition btn-primary-glow">
+                        Sign Up
+                    </a>
+                {% endif %}
+
+                <!-- Mobile Menu Toggle -->
+                <button id="mobile-menu-toggle" class="md:hidden p-2 text-dark-700">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100">
+        <div class="px-4 py-4 space-y-3">
+            <a href="{% url 'home' %}" class="block text-dark-700 hover:text-primary-600 font-medium">Home</a>
+            <a href="{% url 'pet_listing' %}" class="block text-dark-700 hover:text-primary-600 font-medium">Pets</a>
+            {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="block text-dark-700 hover:text-primary-600 font-medium">Sign In</a>
+                <a href="{% url 'register' %}" class="block bg-primary-500 text-white px-4 py-2 rounded-xl text-center font-medium">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div id="search-modal" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center">
+        <div class="bg-white rounded-2xl w-full max-w-2xl mx-4 p-6">
+            <div class="flex items-center space-x-4">
+                <i data-lucide="search" class="w-6 h-6 text-gray-400"></i>
+                <input type="text" id="search-input" placeholder="Search for pets, breeds, categories..." 
+                       class="flex-1 text-lg outline-none" autofocus>
+                <button id="search-close" class="p-2 hover:bg-gray-100 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="search-results" class="mt-4 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Mobile menu toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    // Search modal
+    const searchToggle = document.getElementById('search-toggle');
+    const searchModal = document.getElementById('search-modal');
+    const searchClose = document.getElementById('search-close');
+    
+    if (searchToggle && searchModal) {
+        searchToggle.addEventListener('click', () => {
+            searchModal.classList.remove('hidden');
+            searchModal.classList.add('flex');
+            document.getElementById('search-input').focus();
+        });
+        
+        searchClose.addEventListener('click', () => {
+            searchModal.classList.add('hidden');
+            searchModal.classList.remove('flex');
+        });
+        
+        searchModal.addEventListener('click', (e) => {
+            if (e.target === searchModal) {
+                searchModal.classList.add('hidden');
+                searchModal.classList.remove('flex');
+            }
+        });
+    }
+
+    // Load cart count
+    if (document.querySelector('nav').dataset.authenticated === 'true') {
+        (function() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            fetch('/api/v1/cart/', { headers: { 'Authorization': 'Bearer ' + token } })
+                .then(res => { if (!res.ok) throw new Error('auth'); return res.json(); })
+                .then(data => {
+                    const cartCount = document.getElementById('cart-count');
+                    if (cartCount && data.total_items > 0) {
+                        cartCount.textContent = data.total_items;
+                        cartCount.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {});
+        })();
+    }
+
+    // Load categories
+    fetch('/api/v1/pets/categories/')
+        .then(res => res.json())
+        .then(data => {
+            const dropdown = document.getElementById('category-dropdown');
+            if (dropdown && data.results) {
+                dropdown.innerHTML = data.results.map(cat => 
+                    `<a href="/pets/?category=${cat.slug}" class="block px-4 py-2 text-sm text-dark-700 hover:bg-primary-50 hover:text-primary-600">${cat.name}</a>`
+                ).join('');
+            }
+        })
+        .catch(() => {});
+});
+</script>

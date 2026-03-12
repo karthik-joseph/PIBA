@@ -1,0 +1,107 @@
+{% load static %}
+
+<!-- Pet Card Component -->
+<!-- Usage: include 'components/pet_card.html' with pet=pet -->
+
+<div class="bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-lg transition-all duration-300 group">
+    <!-- Image -->
+    <div class="relative aspect-[4/3] overflow-hidden">
+        <img src="{{ pet.primary_image_url }}" 
+             alt="{{ pet.name }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+             onerror="this.src='{% static 'images/placeholder/default_pet_image.png' %}'">
+        
+        <!-- Badges -->
+        <div class="absolute top-3 left-3 flex flex-col gap-2">
+            {% if pet.is_featured %}
+                <span class="bg-primary-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
+                    Featured
+                </span>
+            {% endif %}
+            {% if pet.listing_type == 'adoption' %}
+                <span class="bg-success-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
+                    Adoption
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Wishlist Button -->
+        <button onclick="toggleWishlist({{ pet.id }})" 
+                class="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full shadow-md transition wishlist-btn"
+                data-pet-id="{{ pet.id }}">
+            <i data-lucide="heart" class="w-5 h-5 text-gray-400 hover:text-red-500 transition"></i>
+        </button>
+
+        <!-- Status Badge -->
+        {% if pet.status != 'available' %}
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span class="bg-white text-dark-800 px-4 py-2 rounded-xl font-semibold">
+                    {{ pet.get_status_display }}
+                </span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="p-4">
+        <!-- Category & Breed -->
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs text-primary-600 font-medium bg-primary-50 px-2 py-1 rounded">
+                {{ pet.category.name }}
+            </span>
+            {% if pet.breed %}
+                <span class="text-xs text-gray-500">{{ pet.breed.name }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Name -->
+        <h3 class="font-semibold text-dark-800 text-lg mb-1 truncate">
+            <a href="{% url 'pet_detail' pet.slug %}" class="hover:text-primary-600 transition">
+                {{ pet.name }}
+            </a>
+        </h3>
+
+        <!-- Details -->
+        <div class="flex items-center text-sm text-gray-500 mb-3 space-x-3">
+            <span class="flex items-center">
+                <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                {{ pet.age_display|default:"Unknown" }}
+            </span>
+            <span class="flex items-center capitalize">
+                <i data-lucide="{% if pet.gender == 'male' %}circle{% else %}circle{% endif %}" class="w-4 h-4 mr-1"></i>
+                {{ pet.gender }}
+            </span>
+        </div>
+
+        <!-- Health Badges -->
+        <div class="flex flex-wrap gap-2 mb-3">
+            {% if pet.is_vaccinated %}
+                <span class="flex items-center text-xs text-success-600 bg-success-50 px-2 py-1 rounded">
+                    <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>
+                    Vaccinated
+                </span>
+            {% endif %}
+            {% if pet.health_status == 'excellent' %}
+                <span class="flex items-center text-xs text-secondary-600 bg-secondary-50 px-2 py-1 rounded">
+                    <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i>
+                    Excellent Health
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Price & Location -->
+        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div>
+                {% if pet.listing_type == 'sale' %}
+                    <span class="text-xl font-bold text-primary-600">₹{{ pet.price|floatformat:0 }}</span>
+                {% else %}
+                    <span class="text-lg font-semibold text-success-600">Free Adoption</span>
+                {% endif %}
+            </div>
+            <div class="flex items-center text-sm text-gray-500">
+                <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i>
+                {{ pet.seller.city }}
+            </div>
+        </div>
+    </div>
+</div>
