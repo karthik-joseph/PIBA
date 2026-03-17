@@ -60,11 +60,10 @@
                 <!-- Phone -->
                 <div>
                     <label class="block text-sm font-medium text-dark-700 mb-2">Phone Number</label>
-                    <div class="relative">
-                        <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                        <input type="tel" name="phone_number"
-                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition"
-                               placeholder="+91 9876543210">
+                    <div class="relative phone-input-container">
+                        <!-- <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"></i> -->
+                        <input type="tel" name="phone_number" id="phone_number"
+                               class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition">
                     </div>
                 </div>
 
@@ -150,6 +149,45 @@ function togglePassword(inputId, btn) {
     lucide.createIcons();
 }
 
+// Initialize intl-tel-input
+const phoneInput = document.querySelector("#phone_number");
+const iti = window.intlTelInput(phoneInput, {
+    initialCountry: "in",
+    separateDialCode: true,
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+});
+
+// Update dynamic placeholder and maxlength based on country standard
+const updatePhoneValidation = () => {
+    const exampleNumber = iti.getPlaceholder() || "";
+    const digitCount = exampleNumber.replace(/[^0-9]/g, "").length;
+    
+    if (digitCount > 0) {
+        phoneInput.placeholder = `Enter your ${digitCount} digit number`;
+        phoneInput.maxLength = digitCount;
+    } else {
+        // Fallback if utils script is still loading
+        const countryData = iti.getSelectedCountryData();
+        if (countryData.iso2 === 'in') {
+            phoneInput.placeholder = "Enter your 10 digit number";
+            phoneInput.maxLength = 10;
+        }
+        // Retry shortly to get the set value from utils
+        setTimeout(updatePhoneValidation, 100);
+    }
+};
+
+// Handle country change
+phoneInput.addEventListener("countrychange", updatePhoneValidation);
+
+// Initial update
+updatePhoneValidation();
+
+// Numeric-only validation
+phoneInput.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
 document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -170,6 +208,15 @@ document.getElementById('register-form').addEventListener('submit', async functi
     btn.innerHTML = '<div class="spinner"></div>';
     errorDiv.classList.add('hidden');
 
+    // Phone validation
+    if (formData.get('phone_number') && !iti.isValidNumber()) {
+        errorDiv.textContent = 'Please enter a valid phone number for the selected country.';
+        errorDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Create Account</span>';
+        return;
+    }
+
     try {
         const response = await fetch('/api/v1/auth/register/', {
             method: 'POST',
@@ -179,7 +226,7 @@ document.getElementById('register-form').addEventListener('submit', async functi
                 email: formData.get('email'),
                 first_name: formData.get('first_name'),
                 last_name: formData.get('last_name'),
-                phone_number: formData.get('phone_number'),
+                phone_number: iti.getNumber(), // Get full E.164 formatted number
                 password: password,
                 password_confirm: confirmPassword,
             })

@@ -142,6 +142,9 @@
         <!-- Custom CSS -->
         <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
+        <!-- Intl Tel Input CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/css/intlTelInput.css">
+
         <style>
             html { scroll-behavior: smooth; }
             body { font-family: 'Inter', sans-serif; }
@@ -199,6 +202,26 @@
                 max-width: 300px;
                 width: 80%;
                 height: auto;
+            }
+
+            /* Intl Tel Input Adjustments */
+            .iti { width: 100%; }
+            .iti__country-list {
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                border: 1px solid #e5e7eb;
+                padding: 8px;
+                z-index: 100;
+            }
+            .iti__country { padding: 8px 12px; border-radius: 8px; }
+            .iti__country:hover { background: #f3f4f6; }
+            .iti__selected-flag {
+                padding-left: 45px !important;
+                border-radius: 12px 0 0 12px;
+            }
+            .iti--separate-dial-code .iti__selected-dial-code {
+                color: #374151;
+                font-weight: 500;
             }
         </style>
 
@@ -266,6 +289,9 @@
 
     <!-- Base JavaScript -->
     <script src="{% static 'js/base.js' %}"></script>
+
+    <!-- Intl Tel Input JS -->
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/intlTelInput.min.js"></script>
 
     <!-- API Helper -->
     <script>
