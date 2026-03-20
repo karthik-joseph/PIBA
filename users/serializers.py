@@ -42,20 +42,31 @@ class UserLoginSerializer(serializers.Serializer):
         password = attrs.get('password')
 
         user = None
-        if email and password:
-            user = authenticate(request=self.context.get('request'), email=email, password=password)
-        elif phone_number and password:
+        if email:
             try:
-                user_obj = User.objects.get(phone_number=phone_number)
-                user = authenticate(request=self.context.get('request'), email=user_obj.email, password=password)
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                pass
+        elif phone_number:
+            try:
+                user = User.objects.get(phone_number=phone_number)
             except User.DoesNotExist:
                 pass
 
-        if not user:
+        if not user or not user.check_password(password):
             raise serializers.ValidationError('Invalid email, phone number or password.')
         
+        # Check if the account is deactivated
         if not user.is_active:
-            raise serializers.ValidationError('User account is disabled.')
+            if user.role == 'seller':
+                raise serializers.ValidationError('Your shop verification has been revoked.')
+            else:
+                raise serializers.ValidationError('Your account has been deactivated.')
+        
+        # Check if the seller profile is unverified (revoked)
+        if user.role == 'seller':
+            if hasattr(user, 'seller_profile') and not user.seller_profile.is_verified:
+                raise serializers.ValidationError('Your shop verification has been revoked.')
         
         attrs['user'] = user
         return attrs

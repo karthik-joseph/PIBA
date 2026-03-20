@@ -79,7 +79,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'status', 'payment_status', 'payment_method',
             'subtotal', 'tax_amount', 'shipping_amount', 'total_amount',
             'shipping_address', 'shipping_address_display',
-            'buyer_notes', 'items',
+            'buyer_notes', 'admin_notes', 'items',
             'created_at', 'confirmed_at', 'shipped_at', 'delivered_at'
         ]
 

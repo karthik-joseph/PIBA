@@ -171,6 +171,18 @@ class AdminUserDetailAPIView(APIView):
         
         if 'is_active' in request.data:
             user.is_active = request.data['is_active']
+            # If a seller is deactivated, cancel their orders
+            if not user.is_active and user.role == 'seller' and hasattr(user, 'seller_profile'):
+                from orders.models import Order
+                active_orders = Order.objects.filter(
+                    seller=user.seller_profile,
+                    status__in=['pending', 'confirmed', 'processing']
+                )
+                for order in active_orders:
+                    order.status = 'cancelled'
+                    order.admin_notes = "The shop has been removed or revoked by the admin. No purchase available and the refund amount will be transferred to your account."
+                    order.save()
+                    
         if 'is_verified' in request.data:
             user.is_verified = request.data['is_verified']
         if 'role' in request.data:
@@ -226,7 +238,19 @@ class AdminSellerVerifyAPIView(APIView):
         elif action == 'unverify':
             seller.is_verified = False
             seller.save()
-            return Response({'message': 'Seller unverified.'})
+            
+            # Auto-cancel active orders for the unverified seller
+            from orders.models import Order
+            active_orders = Order.objects.filter(
+                seller=seller,
+                status__in=['pending', 'confirmed', 'processing']
+            )
+            for order in active_orders:
+                order.status = 'cancelled'
+                order.admin_notes = "The shop has been removed or revoked by the admin. No purchase available and the refund amount will be transferred to your account."
+                order.save()
+                
+            return Response({'message': 'Seller unverified and active orders cancelled.'})
         
         return Response({'error': 'Invalid action.'}, status=400)
 
