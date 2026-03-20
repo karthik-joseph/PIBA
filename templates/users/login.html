@@ -23,7 +23,7 @@
             </div>
 
             <!-- Login Form -->
-            <form id="login-form" class="space-y-6">
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-6">
                 <!-- Email Field -->
                 <div id="email-field">
                     <label class="block text-sm font-medium text-dark-700 mb-2">Email</label>
@@ -106,6 +106,9 @@
 
 {% block extra_scripts %}
 <script>
+let iti;
+let loginMethod = 'email';
+
 function togglePassword(btn) {
     const input = btn.parentElement.querySelector('input');
     const icon = btn.querySelector('i');
@@ -116,46 +119,41 @@ function togglePassword(btn) {
         input.type = 'password';
         icon.setAttribute('data-lucide', 'eye');
     }
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
-let loginMethod = 'email';
-const phoneInput = document.querySelector("#phone_number");
-const iti = window.intlTelInput(phoneInput, {
-    initialCountry: "in",
-    separateDialCode: true,
-    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
-});
+// Initialize phone input safely
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.querySelector("#phone_number");
+    if (phoneInput && window.intlTelInput) {
+        iti = window.intlTelInput(phoneInput, {
+            initialCountry: "in",
+            separateDialCode: true,
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+        });
 
-// Update dynamic placeholder and maxlength based on country standard
-const updatePhoneValidation = () => {
-    const exampleNumber = iti.getPlaceholder() || "";
-    const digitCount = exampleNumber.replace(/[^0-9]/g, "").length;
-    
-    if (digitCount > 0) {
-        phoneInput.placeholder = `Enter your ${digitCount} digit number`;
-        phoneInput.maxLength = digitCount;
-    } else {
-        // Fallback if utils script is still loading
-        const countryData = iti.getSelectedCountryData();
-        if (countryData.iso2 === 'in') {
-            phoneInput.placeholder = "Enter your 10 digit number";
-            phoneInput.maxLength = 10;
-        }
-        // Retry shortly to get the set value from utils
-        setTimeout(updatePhoneValidation, 100);
+        const updatePhoneValidation = () => {
+            if (!iti) return;
+            try {
+                const exampleNumber = iti.getPlaceholder() || "";
+                const digitCount = exampleNumber.replace(/[^0-9]/g, "").length;
+                
+                if (digitCount > 0) {
+                    phoneInput.placeholder = `Enter your ${digitCount} digit number`;
+                    phoneInput.maxLength = digitCount;
+                }
+            } catch (e) {
+                console.warn('iti.getPlaceholder error:', e);
+            }
+        };
+
+        phoneInput.addEventListener("countrychange", updatePhoneValidation);
+        setTimeout(updatePhoneValidation, 500); // Wait for utils
+
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
     }
-};
-
-// Handle country change
-phoneInput.addEventListener("countrychange", updatePhoneValidation);
-
-// Initial update
-updatePhoneValidation();
-
-// Numeric-only validation
-phoneInput.addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
 });
 
 function switchLoginTab(method) {
@@ -182,49 +180,58 @@ function switchLoginTab(method) {
     }
 }
 
-document.getElementById('login-form').addEventListener('submit', async function(e) {
+async function handleLogin(e) {
     e.preventDefault();
+    console.log('handleLogin triggered');
     
     const btn = document.getElementById('login-btn');
     const errorDiv = document.getElementById('login-error');
-    const formData = new FormData(this);
+    const form = document.getElementById('login-form');
+    const formData = new FormData(form);
     
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div>';
+    const originalBtnText = btn.innerHTML;
+    btn.innerHTML = `
+        <div class="flex items-center gap-2">
+            <div class="spinner border-white w-4 h-4"></div>
+            <span>Signing In...</span>
+        </div>
+    `;
     errorDiv.classList.add('hidden');
     
     // Phone validation for phone login
-    if (loginMethod === 'phone') {
+    if (loginMethod === 'phone' && iti) {
         const phoneNumber = iti.getNumber();
         if (!phoneNumber || !iti.isValidNumber()) {
             errorDiv.textContent = 'Please enter a valid phone number.';
             errorDiv.classList.remove('hidden');
             btn.disabled = false;
-            btn.innerHTML = '<span>Sign In</span>';
+            btn.innerHTML = originalBtnText;
             return;
         }
     }
     
     try {
+        const payload = {
+            email: loginMethod === 'email' ? formData.get('email') : null,
+            phone_number: loginMethod === 'phone' ? iti.getNumber() : null,
+            password: formData.get('password')
+        };
+        console.log('Sending login payload:', payload);
+
         const response = await fetch('/api/v1/auth/login/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: loginMethod === 'email' ? formData.get('email') : null,
-                phone_number: loginMethod === 'phone' ? iti.getNumber() : null,
-                password: formData.get('password')
-            })
+            body: JSON.stringify(payload)
         });
         
         const data = await response.json();
+        console.log('Login response:', response.status, data);
         
         if (response.ok) {
-            // Store tokens
-            AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            if (window.AUTH) AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            if (window.showToast) showToast('Login successful!', 'success');
             
-            showToast('Login successful!', 'success');
-            
-            // Role-based redirect
             const next = new URLSearchParams(window.location.search).get('next');
             const role = data.user?.role;
             const isSuperuser = data.user?.is_superuser;
@@ -241,16 +248,24 @@ document.getElementById('login-form').addEventListener('submit', async function(
                 }
             }, 500);
         } else {
-            errorDiv.textContent = data.error || data.detail || 'Invalid email or password';
+            let errorMessage = 'Invalid email or password';
+            if (data.non_field_errors) errorMessage = data.non_field_errors[0];
+            else if (data.detail) errorMessage = data.detail;
+            else if (data.email) errorMessage = data.email[0];
+            else if (data.phone_number) errorMessage = data.phone_number[0];
+            else if (data.password) errorMessage = data.password[0];
+            
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove('hidden');
         }
-    } catch {
+    } catch (err) {
+        console.error('Login error:', err);
         errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span>Sign In</span>';
     }
-});
+}
 </script>
 {% endblock %}
