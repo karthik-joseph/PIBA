@@ -40,6 +40,7 @@
                     <label class="block text-sm font-medium text-dark-700 mb-2">Phone Number</label>
                     <div class="relative phone-input-container">
                         <input type="tel" name="phone_number" id="phone_number"
+                               inputmode="numeric" pattern="[0-9]*"
                                class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition">
                     </div>
                 </div>
@@ -134,21 +135,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const updatePhoneValidation = () => {
             if (!iti) return;
-            try {
-                const exampleNumber = iti.getPlaceholder() || "";
-                const digitCount = exampleNumber.replace(/[^0-9]/g, "").length;
-                
-                if (digitCount > 0) {
-                    phoneInput.placeholder = `Enter your ${digitCount} digit number`;
-                    phoneInput.maxLength = digitCount;
+            const countryData = iti.getSelectedCountryData();
+            
+            // Standard fallback
+            phoneInput.placeholder = "Enter phone number";
+            phoneInput.removeAttribute('maxlength');
+
+            // Try to get dynamic length from utils (now in base.html)
+            if (window.intlTelInputUtils) {
+                const example = intlTelInputUtils.getExampleNumber(countryData.iso2, true, intlTelInputUtils.numberFormat.NATIONAL);
+                if (example) {
+                    const digits = example.replace(/[^0-9]/g, "").length;
+                    phoneInput.placeholder = `Enter ${digits} digit number`;
+                    phoneInput.maxLength = digits;
+                    
+                    // Trim if current value exceeds new limit
+                    if (phoneInput.value.length > digits) {
+                        phoneInput.value = phoneInput.value.slice(0, digits);
+                    }
                 }
-            } catch (e) {
-                console.warn('iti.getPlaceholder error:', e);
             }
         };
 
         phoneInput.addEventListener("countrychange", updatePhoneValidation);
-        setTimeout(updatePhoneValidation, 500); // Wait for utils
+        // Initial setup
+        setTimeout(updatePhoneValidation, 100); 
 
         phoneInput.addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');

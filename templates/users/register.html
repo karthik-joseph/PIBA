@@ -17,7 +17,7 @@
             </div>
 
             <!-- Register Form -->
-            <form id="register-form" class="space-y-5">
+            <form id="register-form" onsubmit="handleRegister(event)" class="space-y-5">
                 {% csrf_token %}
                 <!-- Name Row -->
                 <div class="grid grid-cols-2 gap-4">
@@ -63,6 +63,7 @@
                     <div class="relative phone-input-container">
                         <!-- <i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10"></i> -->
                         <input type="tel" name="phone_number" id="phone_number"
+                               inputmode="numeric" pattern="[0-9]*"
                                class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition">
                     </div>
                 </div>
@@ -136,6 +137,8 @@
 
 {% block extra_scripts %}
 <script>
+let iti;
+
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('i');
@@ -146,54 +149,57 @@ function togglePassword(inputId, btn) {
         input.type = 'password';
         icon.setAttribute('data-lucide', 'eye');
     }
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
-// Initialize intl-tel-input
-const phoneInput = document.querySelector("#phone_number");
-const iti = window.intlTelInput(phoneInput, {
-    initialCountry: "in",
-    separateDialCode: true,
-    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
-});
+// Initialize phone input safely
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.querySelector("#phone_number");
+    if (phoneInput && window.intlTelInput) {
+        iti = window.intlTelInput(phoneInput, {
+            initialCountry: "in",
+            separateDialCode: true,
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@24.5.0/build/js/utils.js",
+        });
 
-// Update dynamic placeholder and maxlength based on country standard
-const updatePhoneValidation = () => {
-    const exampleNumber = iti.getPlaceholder() || "";
-    const digitCount = exampleNumber.replace(/[^0-9]/g, "").length;
-    
-    if (digitCount > 0) {
-        phoneInput.placeholder = `Enter your ${digitCount} digit number`;
-        phoneInput.maxLength = digitCount;
-    } else {
-        // Fallback if utils script is still loading
-        const countryData = iti.getSelectedCountryData();
-        if (countryData.iso2 === 'in') {
-            phoneInput.placeholder = "Enter your 10 digit number";
-            phoneInput.maxLength = 10;
-        }
-        // Retry shortly to get the set value from utils
+        const updatePhoneValidation = () => {
+            if (!iti) return;
+            const countryData = iti.getSelectedCountryData();
+            
+            // Standard fallback
+            phoneInput.placeholder = "Enter phone number";
+            phoneInput.removeAttribute('maxlength');
+
+            if (window.intlTelInputUtils) {
+                const example = intlTelInputUtils.getExampleNumber(countryData.iso2, true, intlTelInputUtils.numberFormat.NATIONAL);
+                if (example) {
+                    const digits = example.replace(/[^0-9]/g, "").length;
+                    phoneInput.placeholder = `Enter ${digits} digit number`;
+                    phoneInput.maxLength = digits;
+                    
+                    if (phoneInput.value.length > digits) {
+                        phoneInput.value = phoneInput.value.slice(0, digits);
+                    }
+                }
+            }
+        };
+
+        phoneInput.addEventListener("countrychange", updatePhoneValidation);
         setTimeout(updatePhoneValidation, 100);
+
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
     }
-};
-
-// Handle country change
-phoneInput.addEventListener("countrychange", updatePhoneValidation);
-
-// Initial update
-updatePhoneValidation();
-
-// Numeric-only validation
-phoneInput.addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
 });
 
-document.getElementById('register-form').addEventListener('submit', async function(e) {
+async function handleRegister(e) {
     e.preventDefault();
-
+    
     const btn = document.getElementById('register-btn');
     const errorDiv = document.getElementById('register-error');
-    const formData = new FormData(this);
+    const form = document.getElementById('register-form');
+    const formData = new FormData(form);
 
     const password = formData.get('password');
     const confirmPassword = formData.get('password_confirm');
@@ -205,11 +211,16 @@ document.getElementById('register-form').addEventListener('submit', async functi
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div>';
+    btn.innerHTML = `
+        <div class="flex items-center gap-2">
+            <div class="spinner border-white w-4 h-4"></div>
+            <span>Creating Account...</span>
+        </div>
+    `;
     errorDiv.classList.add('hidden');
 
     // Phone validation
-    if (formData.get('phone_number') && !iti.isValidNumber()) {
+    if (iti && !iti.isValidNumber()) {
         errorDiv.textContent = 'Please enter a valid phone number for the selected country.';
         errorDiv.classList.remove('hidden');
         btn.disabled = false;
@@ -218,44 +229,47 @@ document.getElementById('register-form').addEventListener('submit', async functi
     }
 
     try {
+        const payload = {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            first_name: formData.get('first_name'),
+            last_name: formData.get('last_name'),
+            phone_number: iti ? iti.getNumber() : formData.get('phone_number'),
+            password: password,
+            password_confirm: confirmPassword,
+        };
+
         const response = await fetch('/api/v1/auth/register/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: formData.get('username'),
-                email: formData.get('email'),
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                phone_number: iti.getNumber(), // Get full E.164 formatted number
-                password: password,
-                password_confirm: confirmPassword,
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            AUTH.setTokens(data.tokens.access, data.tokens.refresh);
-            showToast('Account created successfully! Welcome to PIBA!', 'success');
+            if (window.AUTH) AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            if (window.showToast) showToast('Account created successfully!', 'success');
             setTimeout(() => { window.location.href = '/'; }, 800);
         } else {
-            const errors = data;
-            let msg = '';
-            if (typeof errors === 'object') {
-                msg = Object.values(errors).flat().join(' ');
-            } else {
-                msg = errors.detail || 'Registration failed. Please try again.';
+            console.error('Registration failed:', data);
+            let msg = 'Registration failed. Please try again.';
+            if (typeof data === 'object') {
+                msg = Object.values(data).flat().join(' ');
+            } else if (data.detail) {
+                msg = data.detail;
             }
             errorDiv.textContent = msg;
             errorDiv.classList.remove('hidden');
         }
-    } catch {
+    } catch (err) {
+        console.error('Registration error:', err);
         errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span>Create Account</span>';
     }
-});
+}
 </script>
 {% endblock %}
