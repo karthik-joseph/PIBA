@@ -526,8 +526,19 @@ class AdminOrdersAPIView(APIView):
         for order in orders[:100]:
             data.append({
                 'order_number': order.order_number,
-                'buyer': order.buyer.email,
+                'buyer': {
+                    'username': order.buyer.username,
+                    'email': order.buyer.email,
+                },
+                'buyer_name': order.buyer.get_full_name().strip() or order.buyer.username,
                 'seller': order.seller.business_name,
+                'items': [
+                    {
+                        'pet_name': item.pet_name_snapshot,
+                        'pet_category': item.pet_category_snapshot,
+                        'price': float(item.price_at_purchase)
+                    } for item in order.items.all()
+                ],
                 'status': order.status,
                 'payment_status': order.payment_status,
                 'total_amount': float(order.total_amount),
