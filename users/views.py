@@ -263,3 +263,15 @@ class WishlistView(View):
 def index(request):
     """Redirect index to home."""
     return redirect('home')
+
+
+class TermsOfUseView(View):
+    """Template view for Terms of Use."""
+    def get(self, request):
+        return render(request, 'legal/terms.html')
+
+
+class RefundPolicyView(View):
+    """Template view for Refund Policy."""
+    def get(self, request):
+        return render(request, 'legal/refund.html')

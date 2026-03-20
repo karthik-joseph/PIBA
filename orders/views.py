@@ -231,6 +231,10 @@ class OrderCancelAPIView(APIView):
             }, status=400)
         
         order.status = 'cancelled'
+        if order.payment_status == 'pending':
+            order.payment_status = 'failed'
+        elif order.payment_status == 'paid':
+            order.payment_status = 'refunded'
         order.save()
         
         # Make pets available again
@@ -349,11 +353,13 @@ class MockPaymentCallbackAPIView(APIView):
         
         if data['status'] == 'success':
             payment.simulate_success()
+            order.refresh_from_db()
             order.status = 'confirmed'
             order.save()
             return Response({'message': 'Payment successful.', 'status': 'success'})
         else:
             payment.simulate_failure()
+            order.refresh_from_db()
             # Make pets available again
             for item in order.items.all():
                 item.pet.status = 'available'

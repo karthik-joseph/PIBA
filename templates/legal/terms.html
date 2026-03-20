@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms of Use - PIBA{% endblock %}
+
+{% block content %}
+<div class="bg-primary-50 py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-black text-dark-900 mb-6 tracking-tight">Terms of Use</h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">Please read these terms carefully before using PIBA's integrated pet adoption and purchasing platform.</p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-16">
+    <div class="bg-white rounded-3xl shadow-soft p-8 md:p-12 prose prose-lg prose-primary max-w-none text-gray-600">
+        
+        <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-8">Last Updated: October 2026</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">1. Acceptance of Terms</h2>
+        <p>By accessing or using PIBA (the "Platform"), you agree to be bound by these Terms of Use. If you disagree with any part of these terms, you may not access the Platform.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">2. Description of Service</h2>
+        <p>PIBA provides a marketplace connecting verified pet breeders, sellers, and shelters with potential buyers and adopters. We facilitate the discovery and transaction process but do not directly own or sell the pets listed on the Platform unless specifically designated.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">3. User Obligations</h2>
+        <p>Users must provide accurate, current, and complete information during registration. Buyers agree to ensure a safe, nurturing environment for any pet adopted or purchased through PIBA. Sellers agree to adhere to strict ethical breeding and care standards.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">4. Transactions and Payments</h2>
+        <p>All payments made on the Platform are processed securely. PIBA holds funds in escrow until the successful delivery of the pet to ensure the safety and satisfaction of both parties. By completing a transaction, you agree to our <a href="{% url 'refund_policy' %}" class="text-primary-600 hover:text-primary-700 underline">Refund Policy</a>.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">5. Adoptions vs. Purchases</h2>
+        <p>Adopting a pet signifies taking in a rescue animal. Purchasing signifies acquiring a pet from a certified breeder. Both avenues require users to pass respective verification checks to guarantee the well-being of the animal.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">6. Account Termination</h2>
+        <p>PIBA reserves the right to terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms, particularly concerning animal welfare standards.</p>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">7. Contact Information</h2>
+        <p>If you have any questions about these Terms, please contact us at <a href="mailto:support@piba.com" class="text-primary-600 font-bold hover:underline">support@piba.com</a>.</p>
+        
+        <div class="mt-12 pt-8 border-t border-gray-100 flex items-center gap-4 text-sm text-gray-400">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+            <span>PIBA Legal Framework</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

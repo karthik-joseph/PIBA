@@ -87,11 +87,11 @@
                         Payment Method
                     </h2>
                     <div class="space-y-3">
-                        <label class="flex items-center gap-4 p-4 border-2 border-primary-300 rounded-xl cursor-pointer bg-primary-50">
+                        <label class="payment-method-label flex items-center gap-4 p-4 border-2 border-primary-300 rounded-xl cursor-pointer bg-primary-50 transition-colors duration-300">
                             <input type="radio" name="payment_method" value="upi" checked class="accent-primary-500">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                                    <i data-lucide="smartphone" class="w-5 h-5 text-primary-600"></i>
+                                <div class="payment-icon-bg w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm transition-colors duration-300">
+                                    <i data-lucide="smartphone" class="payment-icon w-5 h-5 text-primary-600 transition-colors"></i>
                                 </div>
                                 <div>
                                     <p class="font-semibold text-dark-800">UPI / GPay / PhonePe</p>
@@ -99,11 +99,11 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition">
+                        <label class="payment-method-label flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition-colors duration-300">
                             <input type="radio" name="payment_method" value="card" class="accent-primary-500">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                                <div class="payment-icon-bg w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center transition-colors duration-300">
+                                    <i data-lucide="credit-card" class="payment-icon w-5 h-5 text-gray-600 transition-colors"></i>
                                 </div>
                                 <div>
                                     <p class="font-semibold text-dark-800">Credit / Debit Card</p>
@@ -111,11 +111,11 @@
                                 </div>
                             </div>
                         </label>
-                        <label class="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition">
+                        <label class="payment-method-label flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition-colors duration-300">
                             <input type="radio" name="payment_method" value="cod" class="accent-primary-500">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="banknote" class="w-5 h-5 text-gray-600"></i>
+                                <div class="payment-icon-bg w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center transition-colors duration-300">
+                                    <i data-lucide="banknote" class="payment-icon w-5 h-5 text-gray-600 transition-colors"></i>
                                 </div>
                                 <div>
                                     <p class="font-semibold text-dark-800">Cash on Delivery</p>
@@ -134,7 +134,13 @@
                               placeholder="Any special instructions or requests..."></textarea>
                 </div>
 
-                <div id="checkout-error" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-sm"></div>
+                <div id="checkout-error" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-4"></div>
+
+                <p class="text-xs text-center text-gray-500 mb-4 px-4 leading-relaxed">
+                    By placing your order, you agree to PIBA's <br>
+                    <a href="{% url 'terms' %}" target="_blank" class="text-primary-600 hover:text-primary-700 font-semibold hover:underline">Terms of Service</a> and 
+                    <a href="{% url 'refund_policy' %}" target="_blank" class="text-primary-600 hover:text-primary-700 font-semibold hover:underline">Refund Policy</a>.
+                </p>
 
                 <button type="submit" id="place-order-btn"
                         class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-bold text-lg transition btn-primary-glow flex items-center justify-center gap-2">
@@ -201,9 +207,9 @@
 
                     <!-- Trust Indicators -->
                     <div class="mt-8 pt-6 border-t border-gray-100 flex flex-wrap justify-center gap-4 grayscale opacity-50">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/Razorpay_logo.original.png" alt="Razorpay" class="h-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/UPI-Logo.png/800px-UPI-Logo.png" alt="UPI" class="h-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" alt="Visa" class="h-4">
+                        <img src="{% static 'images/payment/razorpay.png' %}" alt="Razorpay" class="h-10">
+                        <img src="{% static 'images/payment/upi.png' %}" alt="UPI" class="h-10">
+                        <img src="{% static 'images/payment/visa.png' %}" alt="Visa" class="h-10">
                     </div>
                 </div>
                 
@@ -305,6 +311,43 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
     }
 });
 
-document.addEventListener('DOMContentLoaded', loadCartSummary);
+document.addEventListener('DOMContentLoaded', () => {
+    loadCartSummary();
+
+    // Payment method selector highlighting
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Reset all
+            document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+                const label = r.closest('.payment-method-label');
+                label.className = 'payment-method-label flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-primary-200 transition-colors duration-300';
+                
+                const iconBg = label.querySelector('.payment-icon-bg');
+                if (iconBg) iconBg.className = 'payment-icon-bg w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center transition-colors duration-300';
+                
+                const icon = label.querySelector('.payment-icon');
+                if (icon) {
+                    icon.classList.remove('text-primary-600');
+                    icon.classList.add('text-gray-600');
+                }
+            });
+
+            // Highlight selected
+            if (this.checked) {
+                const label = this.closest('.payment-method-label');
+                label.className = 'payment-method-label flex items-center gap-4 p-4 border-2 border-primary-300 rounded-xl cursor-pointer bg-primary-50 transition-colors duration-300';
+                
+                const iconBg = label.querySelector('.payment-icon-bg');
+                if (iconBg) iconBg.className = 'payment-icon-bg w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm transition-colors duration-300';
+                
+                const icon = label.querySelector('.payment-icon');
+                if (icon) {
+                    icon.classList.remove('text-gray-600');
+                    icon.classList.add('text-primary-600');
+                }
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

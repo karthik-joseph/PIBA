@@ -20,4 +20,8 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout'),
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('wishlist/', views.WishlistView.as_view(), name='wishlist'),
+    path('terms-of-use/', views.TermsOfUseView.as_view(), name='terms'),
+    path('refund-policy/', views.RefundPolicyView.as_view(), name='refund_policy'),
 ]
+
+# End of users routing

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Refund Policy - PIBA{% endblock %}
+
+{% block content %}
+<div class="bg-emerald-50 py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-black text-dark-900 mb-6 tracking-tight">Refund & Cancellation Policy</h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">Our commitment to fair, transparent transactions and ethical pet procurement.</p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-16">
+    <div class="bg-white rounded-3xl shadow-soft p-8 md:p-12 prose prose-lg prose-emerald max-w-none text-gray-600">
+        
+        <div class="flex items-center gap-3 mb-8 p-4 bg-emerald-50 text-emerald-800 rounded-xl font-medium">
+            <i data-lucide="refresh-cw" class="w-6 h-6 text-emerald-600"></i>
+            We process all verified refunds within 5-7 business days.
+        </div>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">1. Order Cancellations</h2>
+        <p>You may cancel your order at any time <strong>before</strong> the pet is handed over to our verified delivery partners. 
+        When you successfully cancel a paid order, your payment status will immediately transition to <strong>Refunded</strong>.</p>
+        
+        <div class="pl-6 border-l-4 border-emerald-500 my-6 text-dark-700 bg-gray-50 p-4 rounded-r-lg">
+            <strong>Automatic Process:</strong> Once triggered, the entire transaction amount including GST and handling fees is queued for automatic processing back to your original payment method.
+        </div>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">2. Eligible Reasons for Refund</h2>
+        <ul class="list-disc pl-6 space-y-2 mt-4">
+            <li><strong>Health Concerns:</strong> Upon arrival, if the pet exhibits pre-existing health issues documented by a certified veterinarian within 48 hours.</li>
+            <li><strong>Seller Revocation:</strong> If PIBA forcibly deactivates a seller due to guideline violations, all active unfulfilled orders are automatically cancelled and 100% refunded to buyers.</li>
+            <li><strong>Logistical Failure:</strong> If delivery fails due to circumstances explicitly within our or our partners' control.</li>
+            <li><strong>Buyer Cancellation:</strong> Pre-shipment voluntary cancellations initiated from the "My Orders" dashboard.</li>
+        </ul>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">3. Non-Refundable Scenarios</h2>
+        <p>Due to the ethical and logistical complexities of live animal transport, refunds are <strong>not</strong> provided in the following scenarios:</p>
+        <ul class="list-disc pl-6 space-y-2 mt-4">
+            <li>Buyer remorse after the pet has been shipped or delivered.</li>
+            <li>Failure of the buyer to be present at the delivery address after multiple attempts.</li>
+            <li>Incompatibility issues (we highly recommend utilizing our matching algorithm and speaking with sellers extensively before purchase).</li>
+        </ul>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">4. How to Request a Post-Delivery Refund</h2>
+        <p>If you meet the eligibility criteria for a post-delivery refund (e.g., medical reasons):</p>
+        <ol class="list-decimal pl-6 space-y-2 mt-4">
+            <li>Contact our support team within 48 hours of delivery.</li>
+            <li>Provide official documentation from a registered veterinary clinic.</li>
+            <li>Our team will arrange for the safe retrieval of the pet and process your refund immediately upon verification.</li>
+        </ol>
+
+        <h2 class="text-2xl font-bold text-dark-800 mt-8 mb-4">5. Contact Information</h2>
+        <p>For any questions regarding refunds, contact our dedicated support team at <a href="mailto:support@piba.com" class="text-emerald-600 font-bold hover:underline">support@piba.com</a>.</p>
+    </div>
+</div>
+{% endblock %}

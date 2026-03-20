@@ -87,10 +87,12 @@ async function loadCart() {
         document.getElementById('cart-loading').classList.add('hidden');
 
         if (!data.items || data.items.length === 0) {
+            document.getElementById('cart-content').classList.add('hidden');
             document.getElementById('cart-empty').classList.remove('hidden');
             return;
         }
 
+        document.getElementById('cart-empty').classList.add('hidden');
         document.getElementById('cart-content').classList.remove('hidden');
 
         // Render items
@@ -125,7 +127,7 @@ async function loadCart() {
         lucide.createIcons();
 
         // Update summary
-        const subtotal = data.subtotal || data.items.reduce((sum, item) => sum + parseFloat(item.pet.price), 0);
+        const subtotal = data.subtotal ? parseFloat(data.subtotal) : data.items.reduce((sum, item) => sum + parseFloat(item.pet.price), 0);
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
 

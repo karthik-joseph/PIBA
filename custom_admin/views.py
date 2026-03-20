@@ -180,6 +180,10 @@ class AdminUserDetailAPIView(APIView):
                 )
                 for order in active_orders:
                     order.status = 'cancelled'
+                    if order.payment_status == 'pending':
+                        order.payment_status = 'failed'
+                    elif order.payment_status == 'paid':
+                        order.payment_status = 'refunded'
                     order.admin_notes = "The shop has been removed or revoked by the admin. No purchase available and the refund amount will be transferred to your account."
                     order.save()
                     
@@ -247,6 +251,10 @@ class AdminSellerVerifyAPIView(APIView):
             )
             for order in active_orders:
                 order.status = 'cancelled'
+                if order.payment_status == 'pending':
+                    order.payment_status = 'failed'
+                elif order.payment_status == 'paid':
+                    order.payment_status = 'refunded'
                 order.admin_notes = "The shop has been removed or revoked by the admin. No purchase available and the refund amount will be transferred to your account."
                 order.save()
                 

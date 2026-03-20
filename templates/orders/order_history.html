@@ -28,6 +28,30 @@
 
     <div id="orders-list" class="hidden space-y-4"></div>
 </div>
+
+<!-- Cancel Order Modal -->
+<div id="cancelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <!-- Backdrop -->
+    <div id="cancelModalBackdrop" class="absolute inset-0 bg-dark-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeCancelModal()"></div>
+    
+    <!-- Modal Content -->
+    <div id="cancelModalContent" class="relative bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl m-4 transform scale-95 opacity-0 transition-all duration-300">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="alert-triangle" class="w-8 h-8 text-red-600"></i>
+        </div>
+        <h3 class="text-xl font-bold text-center text-dark-800 mb-2">Cancel Order?</h3>
+        <p class="text-sm text-center text-gray-500 mb-6">Do you really want to cancel order <span id="cancelOrderTarget" class="font-bold text-dark-800"></span>? This action cannot be undone.</p>
+        
+        <div class="flex gap-4">
+            <button onclick="closeCancelModal()" class="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition">
+                No, Keep it
+            </button>
+            <button onclick="confirmCancelOrder()" class="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition flex justify-center items-center">
+                Yes, Cancel
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -98,7 +122,7 @@ async function loadOrders() {
                                 View Details
                             </a>
                             ${order.status === 'pending' || order.status === 'confirmed' ? `
-                                <button onclick="cancelOrder('${order.order_number}')"
+                                <button onclick="openCancelModal('${order.order_number}')"
                                         class="border border-red-300 hover:bg-red-50 text-red-600 py-2 px-4 rounded-xl text-sm transition">
                                     Cancel
                                 </button>
@@ -115,12 +139,46 @@ async function loadOrders() {
     }
 }
 
-async function cancelOrder(orderNumber) {
-    if (!confirm('Are you sure you want to cancel this order?')) return;
+let currentOrderToCancel = null;
+
+function openCancelModal(orderNumber) {
+    currentOrderToCancel = orderNumber;
+    document.getElementById('cancelOrderTarget').textContent = `#${orderNumber}`;
+    
+    const modal = document.getElementById('cancelModal');
+    const backdrop = document.getElementById('cancelModalBackdrop');
+    const content = document.getElementById('cancelModalContent');
+    
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        backdrop.classList.remove('opacity-0');
+        content.classList.remove('opacity-0', 'scale-95');
+        content.classList.add('opacity-100', 'scale-100');
+    });
+}
+
+function closeCancelModal() {
+    currentOrderToCancel = null;
+    const modal = document.getElementById('cancelModal');
+    const backdrop = document.getElementById('cancelModalBackdrop');
+    const content = document.getElementById('cancelModalContent');
+    
+    backdrop.classList.add('opacity-0');
+    content.classList.remove('opacity-100', 'scale-100');
+    content.classList.add('opacity-0', 'scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+async function confirmCancelOrder() {
+    if (!currentOrderToCancel) return;
     
     try {
-        const response = await API.fetch(`/api/v1/orders/${orderNumber}/cancel/`, { method: 'POST' });
+        const response = await API.fetch(`/api/v1/orders/${currentOrderToCancel}/cancel/`, { method: 'POST' });
         if (response.ok) {
+            closeCancelModal();
             showToast('Order cancelled successfully', 'info');
             loadOrders();
         } else {
