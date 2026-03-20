@@ -32,6 +32,11 @@
 
     <div id="pets-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
 
+    <div id="pets-empty" class="hidden text-center py-16 bg-white rounded-2xl shadow-soft">
+        <i data-lucide="search-x" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <p id="pets-empty-text" class="text-gray-500 font-medium">No pets found</p>
+    </div>
+
     <div id="pets-table" class="hidden bg-white rounded-2xl shadow-soft overflow-hidden">
         <table class="w-full">
             <thead class="bg-gray-50">
@@ -45,6 +50,15 @@
             </thead>
             <tbody id="pets-tbody" class="divide-y divide-gray-100"></tbody>
         </table>
+        
+        <!-- Pagination Controls -->
+        <div id="pagination-controls" class="hidden flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-gray-50">
+            <p id="pagination-info" class="text-sm text-gray-500"></p>
+            <div class="flex gap-2">
+                <button id="prev-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+                <button id="next-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -52,6 +66,9 @@
 {% block extra_scripts %}
 <script>
 let allPets = [];
+let filteredPets = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 async function loadPets() {
     try {
@@ -60,21 +77,49 @@ async function loadPets() {
         const response = await API.get(url);
         const data = await response.json();
         allPets = data.results || data || [];
+        filteredPets = allPets;
+        currentPage = 1;
         document.getElementById('pets-loading').classList.add('hidden');
-        renderPets(allPets);
+        renderPets();
     } catch {
         document.getElementById('pets-loading').classList.add('hidden');
     }
 }
 
-function renderPets(pets) {
+function renderPets() {
     const tbody = document.getElementById('pets-tbody');
     const table = document.getElementById('pets-table');
+    const pagination = document.getElementById('pagination-controls');
+    const emptyState = document.getElementById('pets-empty');
+    const emptyText = document.getElementById('pets-empty-text');
     
-    if (!pets || pets.length === 0) { table.classList.add('hidden'); return; }
+    if (!filteredPets || filteredPets.length === 0) { 
+        table.classList.add('hidden'); 
+        pagination.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        
+        const q = document.getElementById('pet-search').value.trim();
+        if (q) {
+            emptyText.textContent = `No pets found matching "${q}"`;
+        } else {
+            emptyText.textContent = "No pets found in the system.";
+        }
+        return; 
+    }
+    
+    emptyState.classList.add('hidden');
     table.classList.remove('hidden');
+    pagination.classList.remove('hidden');
+
+    const totalPages = Math.ceil(filteredPets.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const pagePets = filteredPets.slice(startIdx, endIdx);
     
-    tbody.innerHTML = pets.map(pet => `
+    tbody.innerHTML = pagePets.map(pet => `
         <tr class="hover:bg-gray-50 transition">
             <td class="py-4 px-5">
                 <div class="flex items-center gap-3">
@@ -127,7 +172,21 @@ function renderPets(pets) {
         </tr>
     `).join('');
     lucide.createIcons();
+
+    // Update pagination controls
+    document.getElementById('pagination-info').textContent = `Showing ${startIdx + 1} to ${Math.min(endIdx, filteredPets.length)} of ${filteredPets.length} entries`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderPets(); }
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredPets.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderPets(); }
+});
 
 async function approvePet(id, approved) {
     try {
@@ -149,11 +208,13 @@ async function featurePet(id, featured) {
 
 document.getElementById('pet-search').addEventListener('input', function() {
     const q = this.value.toLowerCase();
-    const filtered = allPets.filter(p =>
+    filteredPets = allPets.filter(p =>
         p.name.toLowerCase().includes(q) ||
-        (p.category_name || '').toLowerCase().includes(q)
+        (p.category_name || '').toLowerCase().includes(q) ||
+        (p.breed_name || '').toLowerCase().includes(q)
     );
-    renderPets(filtered);
+    currentPage = 1;
+    renderPets();
 });
 
 document.getElementById('approved-filter').addEventListener('change', loadPets);

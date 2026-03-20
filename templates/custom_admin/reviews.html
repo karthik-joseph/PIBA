@@ -14,6 +14,15 @@
         <p class="text-gray-500">No reviews to moderate</p>
     </div>
     <div id="reviews-list" class="hidden space-y-4"></div>
+    
+    <!-- Pagination Controls -->
+    <div id="pagination-controls" class="hidden flex items-center justify-between mt-8 px-5 py-3 border border-gray-100 rounded-2xl bg-white shadow-soft">
+        <p id="pagination-info" class="text-sm text-gray-500"></p>
+        <div class="flex gap-2">
+            <button id="prev-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+            <button id="next-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -25,22 +34,49 @@ function renderStars(rating) {
     ).join('');
 }
 
+let allReviews = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
 async function loadReviews() {
     try {
         const response = await API.get('/admin-panel/api/reviews/');
         const data = await response.json();
-        const reviews = data.results || data || [];
-        
+        allReviews = data.results || data || [];
+        currentPage = 1;
         document.getElementById('reviews-loading').classList.add('hidden');
-        
-        if (!reviews.length) {
-            document.getElementById('reviews-empty').classList.remove('hidden');
-            return;
-        }
-        
-        document.getElementById('reviews-list').classList.remove('hidden');
-        document.getElementById('reviews-list').innerHTML = reviews.map(review => `
-            <div class="bg-white rounded-2xl shadow-soft p-6" id="review-${review.id}">
+        renderReviews();
+    } catch {
+        document.getElementById('reviews-loading').classList.add('hidden');
+    }
+}
+
+function renderReviews() {
+    const list = document.getElementById('reviews-list');
+    const pagination = document.getElementById('pagination-controls');
+    const emptyState = document.getElementById('reviews-empty');
+
+    if (!allReviews || allReviews.length === 0) {
+        list.classList.add('hidden');
+        pagination.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    list.classList.remove('hidden');
+    pagination.classList.remove('hidden');
+
+    const totalPages = Math.ceil(allReviews.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const pageData = allReviews.slice(startIdx, endIdx);
+
+    list.innerHTML = pageData.map(review => `
+        <div class="bg-white rounded-2xl shadow-soft p-6" id="review-${review.id}">
                 <div class="flex items-start justify-between gap-4">
                     <div class="flex items-start gap-3 flex-1">
                         <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -75,11 +111,22 @@ async function loadReviews() {
                 ${!review.is_approved ? '<div class="mt-3 bg-red-50 text-red-500 text-xs px-3 py-1.5 rounded-lg">⚠ This review is hidden from public</div>' : ''}
             </div>
         `).join('');
-        lucide.createIcons();
-    } catch {
-        document.getElementById('reviews-loading').classList.add('hidden');
-    }
+    lucide.createIcons();
+
+    // Update pagination controls
+    document.getElementById('pagination-info').textContent = `Showing ${startIdx + 1} to ${Math.min(endIdx, allReviews.length)} of ${allReviews.length} reviews`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderReviews(); }
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(allReviews.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderReviews(); }
+});
 
 async function moderateReview(id, approve) {
     try {

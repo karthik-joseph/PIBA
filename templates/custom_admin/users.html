@@ -25,6 +25,11 @@
 
     <div id="users-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
 
+    <div id="users-empty" class="hidden text-center py-16 bg-white rounded-2xl shadow-soft">
+        <i data-lucide="users-x" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+        <p id="users-empty-text" class="text-gray-500 font-medium">No users found</p>
+    </div>
+
     <div id="users-table" class="hidden admin-card overflow-hidden">
         <table class="w-full">
             <thead class="bg-gray-50">
@@ -38,6 +43,15 @@
             </thead>
             <tbody id="users-tbody" class="divide-y divide-gray-100"></tbody>
         </table>
+        
+        <!-- Pagination Controls -->
+        <div id="pagination-controls" class="hidden flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-gray-50">
+            <p id="pagination-info" class="text-sm text-gray-500"></p>
+            <div class="flex gap-2">
+                <button id="prev-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+                <button id="next-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -45,30 +59,58 @@
 {% block extra_scripts %}
 <script>
 let allUsers = [];
+let filteredUsers = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 async function loadUsers() {
     try {
         const response = await API.get('/admin-panel/api/users/');
         const data = await response.json();
         allUsers = data.results || data || [];
+        filteredUsers = allUsers;
+        currentPage = 1;
         document.getElementById('users-loading').classList.add('hidden');
-        renderUsers(allUsers);
+        renderUsers();
     } catch {
         document.getElementById('users-loading').classList.add('hidden');
     }
 }
 
-function renderUsers(users) {
+function renderUsers() {
     const table = document.getElementById('users-table');
     const tbody = document.getElementById('users-tbody');
+    const pagination = document.getElementById('pagination-controls');
+    const emptyState = document.getElementById('users-empty');
+    const emptyText = document.getElementById('users-empty-text');
     
-    if (!users || users.length === 0) {
+    if (!filteredUsers || filteredUsers.length === 0) {
         table.classList.add('hidden');
+        pagination.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        
+        const search = document.getElementById('user-search').value.trim();
+        if (search) {
+            emptyText.textContent = `No users found matching "${search}"`;
+        } else {
+            emptyText.textContent = "No users found in the system.";
+        }
         return;
     }
     
+    emptyState.classList.add('hidden');
     table.classList.remove('hidden');
-    tbody.innerHTML = users.map(user => `
+    pagination.classList.remove('hidden');
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const pageData = filteredUsers.slice(startIdx, endIdx);
+
+    tbody.innerHTML = pageData.map(user => `
         <tr class="hover:bg-gray-50 transition">
             <td class="py-4 px-5">
                 <div class="flex items-center gap-3">
@@ -110,7 +152,21 @@ function renderUsers(users) {
         </tr>
     `).join('');
     lucide.createIcons();
+
+    // Update pagination controls
+    document.getElementById('pagination-info').textContent = `Showing ${startIdx + 1} to ${Math.min(endIdx, filteredUsers.length)} of ${filteredUsers.length} entries`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderUsers(); }
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderUsers(); }
+});
 
 async function toggleUserStatus(userId, newStatus) {
     try {
@@ -129,7 +185,7 @@ function applyFilters() {
     const search = document.getElementById('user-search').value.toLowerCase();
     const role = document.getElementById('role-filter').value;
     
-    const filtered = allUsers.filter(u => {
+    filteredUsers = allUsers.filter(u => {
         const matchSearch = !search ||
             (u.username || '').toLowerCase().includes(search) ||
             (u.email || '').toLowerCase().includes(search) ||
@@ -137,7 +193,8 @@ function applyFilters() {
         const matchRole = !role || u.role === role;
         return matchSearch && matchRole;
     });
-    renderUsers(filtered);
+    currentPage = 1;
+    renderUsers();
 }
 
 document.getElementById('user-search').addEventListener('input', applyFilters);

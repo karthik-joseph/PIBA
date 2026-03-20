@@ -14,6 +14,15 @@
         <p class="text-gray-500">No adoption requests found</p>
     </div>
     <div id="adoptions-list" class="hidden space-y-4"></div>
+    
+    <!-- Pagination Controls -->
+    <div id="pagination-controls" class="hidden flex items-center justify-between mt-8 px-5 py-3 border border-gray-100 rounded-2xl bg-white shadow-soft">
+        <p id="pagination-info" class="text-sm text-gray-500"></p>
+        <div class="flex gap-2">
+            <button id="prev-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+            <button id="next-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -27,21 +36,48 @@ const ADOPT_STATUS_CLR = {
     completed: 'bg-purple-100 text-purple-700',
 };
 
+let allAdoptions = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
 async function loadAdoptions() {
     try {
         const response = await API.get('/admin-panel/api/adoptions/');
         const data = await response.json();
-        const requests = data.results || data || [];
-        
+        allAdoptions = data.results || data || [];
+        currentPage = 1;
         document.getElementById('adoptions-loading').classList.add('hidden');
-        
-        if (!requests.length) {
-            document.getElementById('adoptions-empty').classList.remove('hidden');
-            return;
-        }
-        
-        document.getElementById('adoptions-list').classList.remove('hidden');
-        document.getElementById('adoptions-list').innerHTML = requests.map(req => {
+        renderAdoptions();
+    } catch {
+        document.getElementById('adoptions-loading').classList.add('hidden');
+    }
+}
+
+function renderAdoptions() {
+    const list = document.getElementById('adoptions-list');
+    const pagination = document.getElementById('pagination-controls');
+    const emptyState = document.getElementById('adoptions-empty');
+
+    if (!allAdoptions || allAdoptions.length === 0) {
+        list.classList.add('hidden');
+        pagination.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    list.classList.remove('hidden');
+    pagination.classList.remove('hidden');
+
+    const totalPages = Math.ceil(allAdoptions.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const pageData = allAdoptions.slice(startIdx, endIdx);
+
+    list.innerHTML = pageData.map(req => {
             const sc = ADOPT_STATUS_CLR[req.status] || 'bg-gray-100 text-gray-700';
             return `
                 <div class="bg-white rounded-2xl shadow-soft p-5">
@@ -70,14 +106,23 @@ async function loadAdoptions() {
                             <a href="/adoption/requests/${req.id}/" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg text-center">View</a>
                         </div>
                     </div>
-                </div>
-            `;
         }).join('');
-        lucide.createIcons();
-    } catch {
-        document.getElementById('adoptions-loading').classList.add('hidden');
-    }
+    lucide.createIcons();
+
+    // Update pagination controls
+    document.getElementById('pagination-info').textContent = `Showing ${startIdx + 1} to ${Math.min(endIdx, allAdoptions.length)} of ${allAdoptions.length} requests`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderAdoptions(); }
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(allAdoptions.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderAdoptions(); }
+});
 
 async function updateAdoption(id, status) {
     try {

@@ -95,7 +95,7 @@ class DashboardStatsAPIView(APIView):
                 'pending': Order.objects.filter(status='pending').count(),
                 'delivered': Order.objects.filter(status='delivered').count(),
                 'revenue': float(Order.objects.filter(
-                    status='delivered', payment_status='paid'
+                    payment_status='paid'
                 ).aggregate(total=Sum('total_amount'))['total'] or 0),
             },
             'adoptions': {
@@ -286,8 +286,10 @@ class AdminPetsAPIView(APIView):
                 'id': pet.id,
                 'name': pet.name,
                 'slug': pet.slug,
-                'category': pet.category.name,
-                'seller': pet.seller.business_name,
+                'category_name': pet.category.name if pet.category else '',
+                'breed_name': pet.breed.name if pet.breed else '',
+                'seller_business_name': pet.seller.business_name if pet.seller else '',
+                'primary_image_url': pet.primary_image_url,
                 'price': float(pet.price),
                 'status': pet.status,
                 'is_approved': pet.is_approved,

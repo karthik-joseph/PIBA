@@ -18,6 +18,15 @@
     <div id="sellers-loading" class="text-center py-16"><div class="spinner mx-auto"></div></div>
 
     <div id="sellers-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    
+    <!-- Pagination Controls -->
+    <div id="pagination-controls" class="hidden flex items-center justify-between mt-8 px-5 py-3 border border-gray-100 rounded-2xl bg-white shadow-soft">
+        <p id="pagination-info" class="text-sm text-gray-500"></p>
+        <div class="flex gap-2">
+            <button id="prev-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Previous</button>
+            <button id="next-page" class="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Next</button>
+        </div>
+    </div>
 
     <div id="sellers-empty" class="hidden text-center py-16">
         <i data-lucide="store" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
@@ -29,13 +38,18 @@
 {% block extra_scripts %}
 <script>
 let allSellers = [];
+let filteredSellers = [];
 let verifiedFilter = '';
+let currentPage = 1;
+const itemsPerPage = 12;
 
 async function loadSellers() {
     try {
         const response = await API.get('/admin-panel/api/sellers/');
         const data = await response.json();
         allSellers = data.results || data || [];
+        filteredSellers = allSellers;
+        currentPage = 1;
         document.getElementById('sellers-loading').classList.add('hidden');
         renderSellers();
     } catch {
@@ -44,18 +58,30 @@ async function loadSellers() {
 }
 
 function renderSellers() {
-    const filtered = verifiedFilter === '' ? allSellers : allSellers.filter(s => s.is_verified.toString() === verifiedFilter);
-    
-    if (!filtered.length) {
-        document.getElementById('sellers-empty').classList.remove('hidden');
-        document.getElementById('sellers-grid').classList.add('hidden');
+    const grid = document.getElementById('sellers-grid');
+    const pagination = document.getElementById('pagination-controls');
+    const emptyState = document.getElementById('sellers-empty');
+
+    if (!filteredSellers || filteredSellers.length === 0) {
+        grid.classList.add('hidden');
+        pagination.classList.add('hidden');
+        emptyState.classList.remove('hidden');
         return;
     }
     
-    document.getElementById('sellers-empty').classList.add('hidden');
-    document.getElementById('sellers-grid').classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    grid.classList.remove('hidden');
+    pagination.classList.remove('hidden');
+
+    const totalPages = Math.ceil(filteredSellers.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const pageData = filteredSellers.slice(startIdx, endIdx);
     
-    document.getElementById('sellers-grid').innerHTML = filtered.map(seller => `
+    grid.innerHTML = pageData.map(seller => `
         <div class="bg-white rounded-2xl shadow-soft p-5">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
@@ -109,10 +135,26 @@ function renderSellers() {
         </div>
     `).join('');
     lucide.createIcons();
+
+    // Update pagination controls
+    document.getElementById('pagination-info').textContent = `Showing ${startIdx + 1} to ${Math.min(endIdx, filteredSellers.length)} of ${filteredSellers.length} entries`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
+
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; renderSellers(); }
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredSellers.length / itemsPerPage);
+    if (currentPage < totalPages) { currentPage++; renderSellers(); }
+});
 
 function filterSellers(verified) {
     verifiedFilter = verified;
+    filteredSellers = verifiedFilter === '' ? allSellers : allSellers.filter(s => s.is_verified.toString() === verifiedFilter);
+    currentPage = 1;
     document.querySelectorAll('.seller-tab').forEach(tab => {
         const isActive = tab.dataset.v === verified;
         tab.className = `seller-tab px-4 py-2 rounded-xl font-medium text-sm ${isActive ? 'bg-primary-500 text-white' : 'bg-white border text-dark-700 hover:bg-gray-50'}`;
