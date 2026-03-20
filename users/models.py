@@ -91,3 +91,29 @@ class UserProfile(models.Model):
         """Return formatted full address."""
         parts = [self.address, self.city, self.state, self.postal_code, self.country]
         return ', '.join(part for part in parts if part)
+
+
+class WishlistItem(models.Model):
+    """Items saved by users to their wishlist."""
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='wishlist_items'
+    )
+    pet = models.ForeignKey(
+        'pets.Pet',
+        on_delete=models.CASCADE,
+        related_name='wishlisted_by'
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'wishlist_items'
+        verbose_name = 'Wishlist Item'
+        verbose_name_plural = 'Wishlist Items'
+        unique_together = ['user', 'pet']
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.pet.name}"

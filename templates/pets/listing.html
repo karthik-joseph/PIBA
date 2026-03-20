@@ -377,6 +377,7 @@ function loadPets() {
                 `).join('');
                 
                 lucide.createIcons();
+                if (typeof applyWishlistState === 'function') applyWishlistState();
 
                 // Build pagination
                 if (data.count && data.count > 10) {

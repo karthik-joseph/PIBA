@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/v1/auth/profile/', views.ProfileAPIView.as_view(), name='api_profile'),
     path('api/v1/auth/password/change/', views.PasswordChangeAPIView.as_view(), name='api_password_change'),
     path('api/v1/auth/me/', views.UserDetailAPIView.as_view(), name='api_user_detail'),
+    path('api/v1/wishlist/', views.WishlistAPIView.as_view(), name='api_wishlist'),
+    path('api/v1/wishlist/toggle/<int:pet_id>/', views.WishlistToggleAPIView.as_view(), name='api_wishlist_toggle'),
 
     # Template Views
     path('register/', views.RegisterView.as_view(), name='register'),

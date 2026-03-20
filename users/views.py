@@ -11,8 +11,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from django.shortcuts import get_object_or_404
 
-from .models import User, UserProfile
+from .models import User, UserProfile, WishlistItem
+from pets.models import Pet
 from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
@@ -22,6 +24,7 @@ from .serializers import (
     ProfileUpdateSerializer,
     PasswordChangeSerializer,
     SellerRegistrationSerializer,
+    WishlistItemSerializer,
 )
 
 
@@ -187,6 +190,33 @@ class UserDetailAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class WishlistAPIView(generics.ListAPIView):
+    """API endpoint to retrieve user's wishlist."""
+    
+    serializer_class = WishlistItemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WishlistItem.objects.filter(user=self.request.user)
+
+
+class WishlistToggleAPIView(APIView):
+    """API endpoint to toggle a pet on the wishlist."""
+    
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pet_id):
+        pet = get_object_or_404(Pet, id=pet_id)
+        wishlist_item = WishlistItem.objects.filter(user=request.user, pet=pet).first()
+        
+        if wishlist_item:
+            wishlist_item.delete()
+            return Response({'status': 'removed', 'message': 'Removed from wishlist.'})
+        else:
+            WishlistItem.objects.create(user=request.user, pet=pet)
+            return Response({'status': 'added', 'message': 'Added to wishlist.'}, status=201)
 
 
 # ============ Template Views ============

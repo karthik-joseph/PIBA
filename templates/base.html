@@ -477,19 +477,84 @@
             }
         }
 
-        // Wishlist functions
+        window.userWishlist = [];
+
+        function applyWishlistState() {
+            window.userWishlist.forEach(petId => {
+                const btns = document.querySelectorAll(`button[onclick*="toggleWishlist(${petId})"]`);
+                btns.forEach(btn => {
+                    const icon = btn.querySelector('svg') || btn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('fill-red-500', 'text-red-500');
+                        icon.classList.remove('text-gray-400', 'hover:text-red-500');
+                    }
+                });
+            });
+        }
+
         async function toggleWishlist(petId) {
             if (!isLoggedIn()) {
                 showLoginModal('Please sign in to save pets to your wishlist');
                 return;
             }
-            showToast('Wishlist feature coming soon!', 'info');
+            try {
+                const response = await API.post(`/api/v1/wishlist/toggle/${petId}/`, {});
+                if (!response) return;
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.status === 'added') {
+                        if (!window.userWishlist.includes(petId)) window.userWishlist.push(petId);
+                        showToast('Added to wishlist! ❤️', 'success');
+                    } else {
+                        window.userWishlist = window.userWishlist.filter(id => id !== petId);
+                        showToast('Removed from wishlist', 'info');
+                    }
+                    
+                    const btns = document.querySelectorAll(`button[onclick*="toggleWishlist(${petId})"]`);
+                    btns.forEach(btn => {
+                        const icon = btn.querySelector('svg') || btn.querySelector('i');
+                        if (icon) {
+                            if (data.status === 'added') {
+                                icon.classList.add('fill-red-500', 'text-red-500');
+                                icon.classList.remove('text-gray-400', 'hover:text-red-500');
+                            } else {
+                                icon.classList.remove('fill-red-500', 'text-red-500');
+                                icon.classList.add('text-gray-400', 'hover:text-red-500');
+                            }
+                        }
+                    });
+                    
+                    document.dispatchEvent(new CustomEvent('wishlistUpdated', { 
+                        detail: { petId: petId, status: data.status } 
+                    }));
+                } else {
+                    showToast(data.message || 'Failed to update wishlist', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error updating wishlist', 'error');
+            }
+        }
+
+        async function initWishlistState() {
+            if (!isLoggedIn()) return;
+            try {
+                const response = await API.fetch('/api/v1/wishlist/');
+                if (response.ok) {
+                    let data = await response.json();
+                    let items = data.results || data || [];
+                    window.userWishlist = items.map(item => item.pet);
+                    applyWishlistState();
+                }
+            } catch (e) { console.error(e); }
         }
 
         // Initialize icons and loading overlay
         document.addEventListener('DOMContentLoaded', () => {
             const loadStartTime = Date.now();
             lucide.createIcons();
+            initWishlistState();
             
             const overlay = document.getElementById('loading-overlay');
             const animationPlayed = sessionStorage.getItem('piba_animation_played');

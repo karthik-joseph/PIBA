@@ -31,8 +31,11 @@
 <script>
 async function loadWishlist() {
     try {
-        const response = await API.get('/api/v1/auth/wishlist/');
+        const response = await API.fetch('/api/v1/wishlist/');
+        if (!response.ok) throw new Error('Failed to load');
         const data = await response.json();
+        
+        // Handle pagination if DRF uses it, otherwise list
         const items = data.results || data || [];
         
         document.getElementById('wishlist-loading').classList.add('hidden');
@@ -46,32 +49,52 @@ async function loadWishlist() {
         grid.classList.remove('hidden');
         
         grid.innerHTML = items.map(item => {
-            const pet = item.pet || item;
+            const pet = item.pet_details;
             return `
-                <div class="bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
-                    <div class="aspect-[4/3] overflow-hidden relative">
-                        <a href="/pets/${pet.slug}/">
-                            <img src="${pet.primary_image_url}" alt="${pet.name}"
-                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                 onerror="this.src='/static/images/placeholder/default_pet_image.png'">
-                        </a>
-                        <button onclick="removeFromWishlist(${item.id || pet.id}, this.closest('.bg-white.rounded-2xl'))"
-                                class="absolute top-3 right-3 p-2 bg-red-50 hover:bg-red-100 rounded-full shadow-md transition">
-                            <i data-lucide="heart" class="w-5 h-5 text-red-500 fill-red-500"></i>
+                <div class="wishlist-card bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-lg transition-all duration-300 group" data-pet-id="${pet.id}">
+                    <div class="relative aspect-[4/3] overflow-hidden">
+                        <img src="${pet.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" 
+                             alt="${pet.name}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                             onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                        
+                        <div class="absolute top-3 left-3 flex flex-col gap-2">
+                            ${pet.is_featured ? '<span class="bg-primary-500 text-white text-xs px-2 py-1 rounded-lg font-medium">Featured</span>' : ''}
+                            ${pet.listing_type === 'adoption' ? '<span class="bg-success-500 text-white text-xs px-2 py-1 rounded-lg font-medium">Adoption</span>' : ''}
+                        </div>
+
+                        <button onclick="toggleWishlist(${pet.id})" 
+                                class="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full shadow-md transition">
+                            <i data-lucide="heart" class="w-5 h-5 text-red-500 fill-red-500 transition"></i>
                         </button>
+
+                        ${pet.status !== 'available' ? `
+                            <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span class="bg-white text-dark-800 px-4 py-2 rounded-xl font-semibold capitalize">${pet.status}</span>
+                            </div>
+                        ` : ''}
                     </div>
+
                     <div class="p-4">
-                        <span class="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded">${pet.category_name}</span>
-                        <h3 class="font-semibold text-dark-800 text-lg mt-2">
-                            <a href="/pets/${pet.slug}/" class="hover:text-primary-600">${pet.name}</a>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs text-primary-600 font-medium bg-primary-50 px-2 py-1 rounded">
+                                ${pet.category_name || 'Pet'}
+                            </span>
+                            ${pet.breed_name ? `<span class="text-xs text-gray-500">${pet.breed_name}</span>` : ''}
+                        </div>
+
+                        <h3 class="font-semibold text-dark-800 text-lg mb-1 truncate">
+                            <a href="/pets/${pet.slug}/" class="hover:text-primary-600 transition">${pet.name}</a>
                         </h3>
-                        <p class="text-sm text-gray-500">${pet.breed_name || 'Mixed'} · ${pet.gender}</p>
-                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                            ${pet.listing_type === 'sale'
-                                ? `<span class="text-lg font-bold text-primary-600">₹${parseInt(pet.price).toLocaleString()}</span>`
-                                : '<span class="text-lg font-semibold text-success-600">Free Adoption</span>'}
-                            <a href="/pets/${pet.slug}/" class="bg-primary-50 hover:bg-primary-100 text-primary-700 px-4 py-2 rounded-xl text-sm font-medium transition">
-                                View Pet
+
+                        <div class="flex items-center justify-between pt-3 mt-3 border-t border-gray-100">
+                            <div>
+                                ${pet.listing_type === 'sale' 
+                                    ? `<span class="text-xl font-bold text-primary-600">₹${parseInt(pet.price).toLocaleString()}</span>`
+                                    : `<span class="text-lg font-semibold text-success-600">Free Adoption</span>`}
+                            </div>
+                            <a href="/pets/${pet.slug}/" class="text-primary-600 hover:text-primary-700 text-sm font-semibold transition">
+                                View Details &rarr;
                             </a>
                         </div>
                     </div>
@@ -86,22 +109,29 @@ async function loadWishlist() {
     }
 }
 
-async function removeFromWishlist(petId, cardElement) {
-    try {
-        const response = await API.fetch(`/api/v1/auth/wishlist/remove/${petId}/`, { method: 'DELETE' });
-        if (response.ok) {
-            cardElement.style.opacity = '0';
-            cardElement.style.transform = 'scale(0.95)';
-            cardElement.style.transition = 'all 0.3s';
+// Listen to the global toggler event to vividly fade out removed cards
+document.addEventListener('wishlistUpdated', (e) => {
+    const { petId, status } = e.detail;
+    if (status === 'removed') {
+        const card = document.querySelector(`.wishlist-card[data-pet-id="${petId}"]`);
+        if (card) {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            card.style.transition = 'all 0.3s ease-out';
             setTimeout(() => {
-                cardElement.remove();
-                showToast('Removed from wishlist', 'info');
+                card.remove();
+                
+                // If grid is empty, show the empty state organically
+                const grid = document.getElementById('wishlist-grid');
+                if (grid.children.length === 0) {
+                    grid.classList.add('hidden');
+                    document.getElementById('wishlist-empty').classList.remove('hidden');
+                    document.getElementById('wishlist-empty').classList.add('animate-fade-in');
+                }
             }, 300);
         }
-    } catch {
-        showToast('Failed to remove', 'error');
     }
-}
+});
 
 document.addEventListener('DOMContentLoaded', loadWishlist);
 </script>

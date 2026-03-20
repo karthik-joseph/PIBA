@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from .models import User, UserProfile
+from .models import User, UserProfile, WishlistItem
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -209,3 +209,18 @@ class SellerRegistrationSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class WishlistItemSerializer(serializers.ModelSerializer):
+    """Serializer for wishlist items."""
+
+    pet_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = WishlistItem
+        fields = ['id', 'pet', 'added_at', 'pet_details']
+        read_only_fields = ['added_at']
+
+    def get_pet_details(self, obj):
+        from pets.serializers import PetListSerializer
+        return PetListSerializer(obj.pet, context=self.context).data
