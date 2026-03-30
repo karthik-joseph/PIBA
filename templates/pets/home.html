@@ -64,19 +64,17 @@
 <section class="relative z-10 bg-gray-50 -mt-8 pt-4">
     <div class="max-w-3xl mx-auto px-4">
         <div class="bg-white rounded-2xl shadow-lg p-4">
-            <form action="{% url 'pet_listing' %}" method="GET" class="flex flex-col sm:flex-row gap-3">
+            <div class="flex flex-col sm:flex-row gap-3 cursor-pointer" onclick="document.getElementById('search-toggle').click();">
                 <div class="flex-1 relative">
                     <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-                    <input type="text" name="search" placeholder="Search for pets, breeds..." 
-                           class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition">
+                    <input type="text" placeholder="Search for pets, breeds, pet care guides, and more..." 
+                           class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 outline-none transition cursor-pointer pointer-events-none" readonly>
                 </div>
-                <select name="category" class="px-4 py-3 rounded-xl border border-gray-200 focus:border-primary-500 outline-none">
-                    <option value="">All Categories</option>
-                </select>
-                <button type="submit" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition btn-primary-glow">
-                    Search
+                <!-- Categories selector removed because the global search modal handles it internally/lexically -->
+                <button type="button" class="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-semibold transition btn-primary-glow">
+                    Start Searching
                 </button>
-            </form>
+            </div>
         </div>
     </div>
 </section>

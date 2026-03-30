@@ -168,6 +168,123 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchModal.classList.remove('flex');
             }
         });
+        
+        // Live Global Search Logic
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        
+        const staticPages = [
+            { title: 'Pet Care Tips', url: '/pet-care-tips/', keywords: ['care', 'tips', 'guide', 'health', 'dog care', 'cat care'] },
+            { title: 'Pet Care Blog', url: '/pet-care-blog/', keywords: ['blog', 'article', 'advanced guide'] },
+            { title: 'Refund Policy', url: '/refund-policy/', keywords: ['refund', 'policy', 'money back'] },
+            { title: 'Terms of Service', url: '/terms-of-use/', keywords: ['terms', 'service', 'conditions', 'legal'] },
+            { title: 'Home', url: '/', keywords: ['home', 'main'] },
+            { title: 'Wishlist', url: '/wishlist/', keywords: ['wishlist', 'saved', 'favorites'] },
+        ];
+
+        let debounceTimer;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const query = e.target.value.trim().toLowerCase();
+            
+            if (query.length < 2) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            searchResults.innerHTML = `
+                <div class="animate-pulse space-y-4 py-4 px-2">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            debounceTimer = setTimeout(async () => {
+                let resultsHTML = '';
+                
+                // 1. Search Static Pages
+                const matchingPages = staticPages.filter(p => 
+                    p.title.toLowerCase().includes(query) || 
+                    p.keywords.some(k => k.includes(query))
+                );
+                
+                if (matchingPages.length > 0) {
+                    resultsHTML += '<h4 class="font-semibold text-gray-500 mb-2 mt-4 px-2">Pages & Guides</h4>';
+                    matchingPages.forEach(page => {
+                        resultsHTML += `
+                            <a href="${page.url}" class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                                <i data-lucide="file-text" class="w-5 h-5 text-gray-400 mr-3"></i>
+                                <span class="text-dark-800 font-medium">${page.title}</span>
+                            </a>
+                        `;
+                    });
+                }
+
+                // 2. Search Pets API
+                try {
+                    const response = await fetch('/api/v1/pets/?search=' + encodeURIComponent(query));
+                    if (response.ok) {
+                        const data = await response.json();
+                        const pets = data.results || data;
+                        if (pets.length > 0) {
+                            resultsHTML += '<h4 class="font-semibold text-gray-500 mb-2 mt-4 px-2">Pets</h4>';
+                            pets.slice(0, 5).forEach(pet => {
+                                resultsHTML += `
+                                    <a href="/pets/${pet.slug}/" class="flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                                        <img src="${pet.primary_image_url || '/static/images/placeholder/default_pet_image.png'}" class="w-12 h-12 rounded-lg object-cover mr-3" onerror="this.src='/static/images/placeholder/default_pet_image.png'">
+                                        <div>
+                                            <p class="text-dark-800 font-medium">${pet.name}</p>
+                                            <p class="text-sm text-gray-500">${pet.category_name} • ${pet.age_display || 'Unknown age'}</p>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error searching pets:', e);
+                }
+
+                if (resultsHTML === '') {
+                    resultsHTML = '<div class="text-center py-8 text-gray-500">No results found for "' + query + '"</div>';
+                }
+
+                searchResults.innerHTML = resultsHTML;
+                lucide.createIcons();
+            }, 300);
+        });
+
+        // Handle Enter key
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                const firstResult = searchResults.querySelector('a');
+                if (firstResult) {
+                    firstResult.click(); // go to the first result if available
+                } else if (query) {
+                    window.location.href = '/pets/?search=' + encodeURIComponent(query);
+                }
+            }
+        });
     }
 
     // Load cart count
