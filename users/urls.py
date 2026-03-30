@@ -24,6 +24,7 @@ urlpatterns = [
     path('wishlist/', views.WishlistView.as_view(), name='wishlist'),
     path('terms-of-use/', views.TermsOfUseView.as_view(), name='terms'),
     path('refund-policy/', views.RefundPolicyView.as_view(), name='refund_policy'),
+    path('pet-care-tips/', views.PetCareTipsView.as_view(), name='pet_care_tips'),
 ]
 
 # End of users routing

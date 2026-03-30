@@ -305,3 +305,9 @@ class RefundPolicyView(View):
     """Template view for Refund Policy."""
     def get(self, request):
         return render(request, 'legal/refund.html')
+
+
+class PetCareTipsView(View):
+    """Template view for Pet Care Tips."""
+    def get(self, request):
+        return render(request, 'pages/pet_care_tips.html')
