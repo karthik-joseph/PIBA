@@ -27,9 +27,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     Consistency is key when training your puppy. Discover positive reinforcement techniques that create a strong bond while teaching essential commands.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Tip 2: Cats -->
@@ -41,9 +47,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     Indoor cats need mental stimulation to prevent boredom and behavioral issues. Learn how to create an engaging environment with vertical spaces and interactive toys.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Tip 3: Nutrition -->
@@ -55,9 +67,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     Every species has unique dietary requirements. Explore our guide on choosing the right food to ensure your pet gets the nutrients they need for a long, vibrant life.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Tip 4: Grooming -->
@@ -69,9 +87,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     Regular grooming prevents matting, reduces shedding, and allows you to check for skin issues. Find the proper brushing techniques and tools for your pet's coat.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Tip 5: Health Checks -->
@@ -83,9 +107,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     Preventative care is the best medicine. Understand vaccination schedules, parasite control, and the importance of annual health check-ups for early disease detection.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Tip 6: Small Pets -->
@@ -97,9 +127,15 @@
                 <p class="text-gray-400 mb-6 line-clamp-3">
                     From guinea pigs to parakeets, small pets have specific housing and social needs. Learn how to provide a safe, comfortable habitat for your pocket pets and birds.
                 </p>
-                <a href="#" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
+                {% if user.is_authenticated %}
+                <a href="{% url 'pet_care_blog' %}" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors">
                     Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                 </a>
+                {% else %}
+                <a href="javascript:void(0)" onclick="showLoginModal('Please sign in to read the full article')" class="text-primary-400 font-semibold inline-flex items-center hover:text-primary-300 transition-colors cursor-pointer">
+                    Read More <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                </a>
+                {% endif %}
             </div>
 
         </div>

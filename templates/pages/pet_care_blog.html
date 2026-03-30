@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pet Care Advanced Guide | PIBA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Back Button -->
+        <a href="{% url 'pet_care_tips' %}" class="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium mb-8 transition">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+            Back to Tips
+        </a>
+
+        <!-- Blog Header -->
+        <article class="bg-white rounded-3xl shadow-soft overflow-hidden">
+            <!-- Featured Image -->
+            <div class="h-64 sm:h-96 w-full bg-primary-100 flex items-center justify-center relative overflow-hidden">
+                <!-- Using a nice gradient placeholder -->
+                <div class="absolute inset-0 bg-gradient-to-r from-primary-400 to-secondary-500 opacity-20"></div>
+                <!-- You can add a static image here if available -->
+                <i data-lucide="heart-handshake" class="w-32 h-32 text-primary-300 relative z-10"></i>
+            </div>
+            
+            <div class="p-8 sm:p-12">
+                <!-- Meta -->
+                <div class="flex items-center space-x-4 mb-6">
+                    <span class="bg-primary-50 text-primary-600 px-3 py-1 rounded-full text-sm font-semibold">Expert Guide</span>
+                    <span class="text-gray-500 flex items-center text-sm">
+                        <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                        {% now "F j, Y" %}
+                    </span>
+                    <span class="text-gray-500 flex items-center text-sm">
+                        <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
+                        10 min read
+                    </span>
+                </div>
+
+                <!-- Title -->
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-dark-900 mb-6 leading-tight">
+                    The Complete Guide to Providing a Healthy & Happy Life for Your Pet
+                </h1>
+
+                <!-- Author -->
+                <div class="flex items-center space-x-4 mb-10 pb-10 border-b border-gray-100">
+                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="text-gray-500"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-dark-800">PIBA Expert Team</p>
+                        <p class="text-sm text-gray-500">Veterinary Care & Animal Behavior</p>
+                    </div>
+                </div>
+
+                <!-- Prose Content -->
+                <div class="prose prose-lg prose-primary max-w-none text-gray-600">
+                    <p class="text-xl leading-relaxed text-gray-700 mb-8">
+                        Welcoming a pet into your home is an exciting and life-changing experience. Whether you're a first-time owner or a seasoned pro, understanding the holistic approach to pet care is essential. In this premium guide, we delve into advanced strategies for nurturing their physical, mental, and emotional well-being.
+                    </p>
+
+                    <h2 class="text-2xl font-bold text-dark-800 mt-10 mb-4">1. The Psychological Well-being of Pets</h2>
+                    <p>
+                        Modern veterinary science firmly establishes that animals experience a rich tapestry of emotions. Dogs experience separation anxiety, cats can suffer from depression due to lack of environmental enrichment, and birds require chronic mental stimulation.
+                    </p>
+                    <ul class="list-disc pl-6 mb-6 space-y-2">
+                        <li><strong>Enrichment:</strong> Incorporate puzzle toys, scent games, and novel environments to challenge their minds.</li>
+                        <li><strong>Routine:</strong> Establish a predictable daily schedule. Animals thrive on knowing when they eat, sleep, and play.</li>
+                        <li><strong>Interspecies Communication:</strong> Learn to read body language. A wagging tail doesn't always mean happiness—it can indicate high arousal or anxiety.</li>
+                    </ul>
+
+                    <h2 class="text-2xl font-bold text-dark-800 mt-10 mb-4">2. Advanced Nutritional Sciences</h2>
+                    <p>
+                        Commercial diets are convenient, but understanding the bioavailability of nutrients can add years to your pet's life. Consider age, activity level, and breed-specific predispositions when selecting their diet.
+                    </p>
+                    <div class="bg-primary-50 border-l-4 border-primary-500 p-6 my-6 rounded-r-xl text-dark-800">
+                        <p class="font-semibold mb-2 flex items-center"><i data-lucide="alert-circle" class="mr-2 text-primary-500"></i> Expert Tip</p>
+                        Always rotate protein sources every few months (if their stomach allows) to prevent food allergies from developing over time and to provide a broader amino acid profile.
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-dark-800 mt-10 mb-4">3. Preventative Healthcare & Lifespan Maximization</h2>
+                    <p>
+                        While annual check-ups are standard, proactive health management involves much more. Dental disease is rampant in adult dogs and cats and is a leading cause of systemic infections.
+                    </p>
+                    <ul class="list-disc pl-6 mb-6 space-y-2">
+                        <li><strong>Bi-annual Blood Profiles:</strong> Once your pet reaches senior age (7+ years), complete blood panels every 6 months can catch renal or hepatic issues early.</li>
+                        <li><strong>Joint Supplementation:</strong> Introduce Omega-3s and Glucosamine/Chondroitin supplements before signs of arthritis appear, especially in large breeds.</li>
+                    </ul>
+
+                    <h2 class="text-2xl font-bold text-dark-800 mt-10 mb-4">Conclusion</h2>
+                    <p>
+                        Being a pet parent is a journey of continuous learning. Your dedication to their comprehensive care repays itself endlessly with unwavering loyalty, comfort, and the profound joy that only animals can bring into human lives.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Author / Call to action at bottom -->
+            <div class="bg-gray-50 p-8 sm:p-12 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+                <div>
+                    <h3 class="font-bold text-xl text-dark-800 mb-2">Did you find this helpful?</h3>
+                    <p class="text-gray-500">Share this guide with other pet parents!</p>
+                </div>
+                <div class="flex space-x-4 mt-6 sm:mt-0">
+                    <button class="w-12 h-12 rounded-full bg-white shadow-soft flex items-center justify-center text-blue-600 hover:scale-110 transition">
+                        <i data-lucide="facebook"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-white shadow-soft flex items-center justify-center text-blue-400 hover:scale-110 transition">
+                        <i data-lucide="twitter"></i>
+                    </button>
+                    <button class="w-12 h-12 rounded-full bg-white shadow-soft flex items-center justify-center text-gray-800 hover:scale-110 transition">
+                        <i data-lucide="link-2"></i>
+                    </button>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if(typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
     path('terms-of-use/', views.TermsOfUseView.as_view(), name='terms'),
     path('refund-policy/', views.RefundPolicyView.as_view(), name='refund_policy'),
     path('pet-care-tips/', views.PetCareTipsView.as_view(), name='pet_care_tips'),
+    path('pet-care-blog/', views.PetCareBlogView.as_view(), name='pet_care_blog'),
 ]
 
 # End of users routing

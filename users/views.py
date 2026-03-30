@@ -311,3 +311,10 @@ class PetCareTipsView(View):
     """Template view for Pet Care Tips."""
     def get(self, request):
         return render(request, 'pages/pet_care_tips.html')
+
+class PetCareBlogView(View):
+    """Template view for Pet Care Blog (authenticated only)."""
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        return render(request, 'pages/pet_care_blog.html')
