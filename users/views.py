@@ -9,6 +9,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from django.shortcuts import get_object_or_404
@@ -125,6 +126,31 @@ class LogoutAPIView(APIView):
         # Also clear Django session
         auth_logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+
+class SessionTokenAPIView(APIView):
+    """Issue fresh JWT tokens using an active Django session.
+    
+    This is used when the user has a valid Django session but their JWT
+    tokens are expired/missing. It allows the frontend to re-acquire
+    tokens without forcing the user to log in again.
+    """
+    
+    permission_classes = [AllowAny]
+    authentication_classes = [SessionAuthentication]  # Read user from Django session
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({'error': 'No active session.'}, status=401)
+        
+        refresh = RefreshToken.for_user(request.user)
+        return Response({
+            'user': {'id': request.user.id},
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        })
 
 
 class ProfileAPIView(APIView):

@@ -240,7 +240,10 @@ async function handleLogin(e) {
         console.log('Login response:', response.status, data);
         
         if (response.ok) {
-            if (window.AUTH) AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            if (window.AUTH) {
+                AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+                if (data.user && data.user.id) AUTH.setUserId(String(data.user.id));
+            }
             if (window.showToast) showToast('Login successful!', 'success');
             
             const next = new URLSearchParams(window.location.search).get('next');

@@ -84,7 +84,7 @@ async function loadOrders() {
             const statusClass = STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-700';
             const date = new Date(order.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
             const items = order.items || [];
-            const firstItem = items[0] || {};
+            const itemCount = order.items_count || items.length;
             
             return `
                 <div class="bg-white rounded-2xl shadow-soft overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -99,7 +99,7 @@ async function loadOrders() {
                             </div>
                             <div class="text-right">
                                 <p class="text-2xl font-bold text-primary-600">₹${parseInt(order.total_amount).toLocaleString()}</p>
-                                <p class="text-sm text-gray-500">${items.length} item${items.length !== 1 ? 's' : ''}</p>
+                                <p class="text-sm text-gray-500">${itemCount} item${itemCount !== 1 ? 's' : ''}</p>
                             </div>
                         </div>
 
@@ -107,7 +107,7 @@ async function loadOrders() {
                         <div class="flex gap-2 mb-4 overflow-x-auto">
                             ${items.slice(0, 4).map(item => `
                                 <div class="flex-shrink-0 w-14 h-14 bg-gray-100 rounded-xl overflow-hidden">
-                                    <img src="${item.pet ? item.pet.primary_image_url : '/static/images/placeholder/default_pet_image.png'}" 
+                                    <img src="${item.pet_primary_image || '/static/images/placeholder/default_pet_image.png'}" 
                                          alt="${item.pet_name_snapshot}"
                                          class="w-full h-full object-cover"
                                          onerror="this.src='/static/images/placeholder/default_pet_image.png'">

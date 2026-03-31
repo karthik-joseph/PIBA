@@ -265,7 +265,10 @@ async function handleSellerRegister(e) {
         const data = await response.json();
 
         if (response.ok) {
-            if (window.AUTH) AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+            if (window.AUTH) {
+                AUTH.setTokens(data.tokens.access, data.tokens.refresh);
+                if (data.user && data.user.id) AUTH.setUserId(String(data.user.id));
+            }
             if (window.showToast) showToast('Seller account created! Pending verification.', 'success');
             setTimeout(() => { window.location.href = '/'; }, 1000);
         } else {
