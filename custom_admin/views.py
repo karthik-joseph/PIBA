@@ -218,10 +218,20 @@ class AdminSellersAPIView(APIView):
         if verified is not None:
             sellers = sellers.filter(is_verified=verified.lower() == 'true')
         
-        data = list(sellers[:100].values(
-            'id', 'business_name', 'business_type', 'city', 'state',
-            'is_verified', 'rating', 'total_sales', 'joined_at'
-        ))
+        data = []
+        for seller in sellers[:100]:
+            data.append({
+                'id': seller.id,
+                'business_name': seller.business_name,
+                'business_type': seller.business_type,
+                'city': seller.city,
+                'state': seller.state,
+                'is_verified': seller.is_verified,
+                'rating': float(seller.rating),
+                'total_sales': seller.total_sales,
+                'total_pets': seller.pets.filter(is_active=True).count(),
+                'joined_at': seller.joined_at,
+            })
         return Response(data)
 
 

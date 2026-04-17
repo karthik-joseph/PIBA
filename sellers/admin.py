@@ -12,7 +12,7 @@ class VerificationDocumentInline(admin.TabularInline):
 class SellerProfileAdmin(admin.ModelAdmin):
     list_display = [
         'business_name', 'user', 'business_type', 'city',
-        'is_verified', 'rating', 'total_sales', 'joined_at'
+        'is_verified', 'total_pets_listed', 'rating', 'total_sales', 'joined_at'
     ]
     list_filter = ['is_verified', 'is_active', 'business_type', 'state']
     search_fields = ['business_name', 'user__email', 'city']
@@ -36,7 +36,7 @@ class SellerProfileAdmin(admin.ModelAdmin):
         }),
     )
     
-    actions = ['verify_sellers', 'unverify_sellers']
+    actions = ['verify_sellers', 'unverify_sellers', 'recalculate_stats']
     
     def verify_sellers(self, request, queryset):
         from django.utils import timezone
@@ -48,6 +48,12 @@ class SellerProfileAdmin(admin.ModelAdmin):
         queryset.update(is_verified=False)
         self.message_user(request, f'{queryset.count()} seller(s) unverified.')
     unverify_sellers.short_description = 'Unverify selected sellers'
+
+    def recalculate_stats(self, request, queryset):
+        for seller in queryset:
+            seller.update_stats()
+        self.message_user(request, f'Stats recalculated for {queryset.count()} seller(s).')
+    recalculate_stats.short_description = 'Recalculate statistics for selected sellers'
 
 
 @admin.register(SellerVerificationDocument)
