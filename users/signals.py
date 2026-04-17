@@ -6,6 +6,8 @@ from .models import User, UserProfile
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Create a UserProfile when a new User is created."""
+    if kwargs.get('raw', False):
+        return
     if created:
         UserProfile.objects.get_or_create(user=instance)
 
@@ -13,5 +15,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     """Save the UserProfile when the User is saved."""
+    if kwargs.get('raw', False):
+        return
     if hasattr(instance, 'profile'):
         instance.profile.save()
