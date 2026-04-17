@@ -593,9 +593,14 @@ class AdminAdoptionsAPIView(APIView):
         for req in requests[:100]:
             data.append({
                 'id': req.id,
-                'pet_name': req.pet.name,
-                'applicant': req.applicant.email,
+                'pet': {
+                    'name': req.pet.name,
+                    'primary_image_url': req.pet.primary_image_url,
+                },
+                'applicant_name': req.applicant.get_full_name() or req.applicant.username,
+                'applicant_email': req.applicant.email,
                 'status': req.status,
+                'reason': req.reason,
                 'submitted_at': req.submitted_at,
             })
         return Response(data)

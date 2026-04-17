@@ -48,8 +48,10 @@ async function loadAdoptions() {
         currentPage = 1;
         document.getElementById('adoptions-loading').classList.add('hidden');
         renderAdoptions();
-    } catch {
+    } catch(e) {
+        console.error('Failed to load adoptions:', e);
         document.getElementById('adoptions-loading').classList.add('hidden');
+        document.getElementById('adoptions-empty').classList.remove('hidden');
     }
 }
 
@@ -106,6 +108,8 @@ function renderAdoptions() {
                             <a href="/adoption/requests/${req.id}/" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg text-center">View</a>
                         </div>
                     </div>
+                </div>
+            `;
         }).join('');
     lucide.createIcons();
 
