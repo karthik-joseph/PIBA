@@ -282,7 +282,7 @@ async function loadRecentOrders() {
                     ${orders.map(o => `
                     <tr>
                         <td class="py-3 font-mono text-xs text-dark-700">${o.order_number}</td>
-                        <td class="py-3 text-dark-700 truncate max-w-[120px]">${o.buyer}</td>
+                        <td class="py-3 text-dark-700 truncate max-w-[120px]">${o.buyer_name || o.buyer?.username || '—'}</td>
                         <td class="py-3 font-semibold hidden sm:table-cell">₹${parseFloat(o.total_amount).toLocaleString('en-IN')}</td>
                         <td class="py-3">
                             <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${statusColor[o.status] || 'badge-gray'} capitalize">${o.status}</span>
