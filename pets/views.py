@@ -310,9 +310,40 @@ class PetDetailView(View):
             is_active=True
         ).exclude(id=pet.id).select_related('category', 'breed')[:4]
         
+        # Check if logged-in user owns this pet already
+        user_has_purchased = False
+        user_has_adopted = False
+        user_has_pending_adoption = False
+
+        if request.user.is_authenticated:
+            from orders.models import Order
+            from adoption.models import AdoptionRequest
+
+            user_has_purchased = Order.objects.filter(
+                buyer=request.user,
+                items__pet=pet,
+                status__in=['confirmed', 'processing', 'shipped', 'delivered'],
+                payment_status='paid'
+            ).exists()
+
+            if pet.listing_type == 'adoption':
+                adoption_req = AdoptionRequest.objects.filter(
+                    pet=pet,
+                    applicant=request.user
+                ).order_by('-submitted_at').first()
+
+                if adoption_req:
+                    if adoption_req.status in ['approved', 'completed']:
+                        user_has_adopted = True
+                    elif adoption_req.status not in ['rejected', 'withdrawn']:
+                        user_has_pending_adoption = True
+
         return render(request, 'pets/detail.html', {
             'pet': pet,
             'similar_pets': similar_pets,
+            'user_has_purchased': user_has_purchased,
+            'user_has_adopted': user_has_adopted,
+            'user_has_pending_adoption': user_has_pending_adoption,
         })
 
 

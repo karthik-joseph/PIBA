@@ -221,31 +221,82 @@
 
                 <!-- Action Buttons -->
                 <div class="space-y-3">
-                    {% if pet.listing_type == 'sale' and pet.status == 'available' %}
-                        <button onclick="addToCart({{ pet.id }})" 
-                                class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition btn-primary-glow">
-                            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                            Add to Cart
-                        </button>
-                    {% elif pet.listing_type == 'adoption' and pet.status == 'available' %}
-                        <a href="{% url 'adoption_apply' pet.slug %}" 
-                           class="w-full bg-success-500 hover:bg-success-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition">
-                            <i data-lucide="heart" class="w-5 h-5"></i>
-                            Apply for Adoption
-                        </a>
-                    {% elif pet.status != 'available' %}
-                        <div class="w-full bg-gray-300 text-gray-600 py-4 rounded-xl font-semibold text-center">
-                            {{ pet.get_status_display }}
+                    {% if user_has_purchased %}
+                        <!-- Already purchased banner -->
+                        <div class="w-full bg-primary-50 border-2 border-primary-200 text-primary-700 py-4 px-5 rounded-xl flex items-center gap-3">
+                            <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="check-circle" class="w-6 h-6 text-primary-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">You own this pet! 🐾</p>
+                                <p class="text-sm opacity-80">You've already purchased {{ pet.name }}.</p>
+                            </div>
                         </div>
+                        <a href="{% url 'order_history' %}"
+                           class="w-full border border-primary-300 text-primary-600 hover:bg-primary-50 py-3 rounded-xl font-medium text-center block transition">
+                            View My Orders
+                        </a>
+
+                    {% elif user_has_adopted %}
+                        <!-- Already adopted banner -->
+                        <div class="w-full bg-success-50 border-2 border-success-200 text-success-700 py-4 px-5 rounded-xl flex items-center gap-3">
+                            <div class="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="heart" class="w-6 h-6 text-success-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">{{ pet.name }} is yours! 🎉</p>
+                                <p class="text-sm opacity-80">Your adoption has been approved.</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'my_adoption_requests' %}"
+                           class="w-full border border-success-300 text-success-600 hover:bg-success-50 py-3 rounded-xl font-medium text-center block transition">
+                            View My Adoption Requests
+                        </a>
+
+                    {% elif user_has_pending_adoption %}
+                        <!-- Pending application banner -->
+                        <div class="w-full bg-yellow-50 border-2 border-yellow-200 text-yellow-700 py-4 px-5 rounded-xl flex items-center gap-3">
+                            <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">Application Submitted</p>
+                                <p class="text-sm opacity-80">Your adoption request for {{ pet.name }} is under review.</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'my_adoption_requests' %}"
+                           class="w-full border border-yellow-300 text-yellow-700 hover:bg-yellow-50 py-3 rounded-xl font-medium text-center block transition">
+                            Track My Application
+                        </a>
+
+                    {% else %}
+                        <!-- Normal action buttons -->
+                        {% if pet.listing_type == 'sale' and pet.status == 'available' %}
+                            <button onclick="addToCart({{ pet.id }})"
+                                    class="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition btn-primary-glow">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                Add to Cart
+                            </button>
+                        {% elif pet.listing_type == 'adoption' and pet.status == 'available' %}
+                            <a href="{% url 'adoption_apply' pet.slug %}"
+                               class="w-full bg-success-500 hover:bg-success-600 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition">
+                                <i data-lucide="heart" class="w-5 h-5"></i>
+                                Apply for Adoption
+                            </a>
+                        {% elif pet.status != 'available' %}
+                            <div class="w-full bg-gray-300 text-gray-600 py-4 rounded-xl font-semibold text-center">
+                                {{ pet.get_status_display }}
+                            </div>
+                        {% endif %}
                     {% endif %}
-                    
+
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="toggleWishlist({{ pet.id }})" 
+                        <button onclick="toggleWishlist({{ pet.id }})"
                                 class="bg-gray-100 hover:bg-gray-200 text-dark-800 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition">
                             <i data-lucide="heart" class="w-5 h-5"></i>
                             Save
                         </button>
-                        <button onclick="sharePet()" 
+                        <button onclick="sharePet()"
                                 class="bg-gray-100 hover:bg-gray-200 text-dark-800 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition">
                             <i data-lucide="share-2" class="w-5 h-5"></i>
                             Share
