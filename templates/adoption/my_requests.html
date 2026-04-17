@@ -62,26 +62,25 @@ async function loadAdoptionRequests() {
                     <div class="p-6">
                         <div class="flex items-start gap-4 mb-4">
                             <div class="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                                <img src="${req.pet?.primary_image_url || '/static/images/placeholder/default_pet_image.png'}"
-                                     alt="${req.pet?.name}"
+                                <img src="${req.pet_image || '/static/images/placeholder/default_pet_image.png'}"
+                                     alt="${req.pet_name}"
                                      class="w-full h-full object-cover">
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-bold text-dark-800 text-lg">${req.pet?.name || 'Pet'}</h3>
+                                    <h3 class="font-bold text-dark-800 text-lg">${req.pet_name || 'Pet'}</h3>
                                     <span class="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${status.class}">
                                         <i data-lucide="${status.icon}" class="w-4 h-4"></i>
                                         ${status.label}
                                     </span>
                                 </div>
-                                <p class="text-gray-500 text-sm">${req.pet?.category_name || ''} · ${req.pet?.breed_name || 'Mixed'}</p>
                                 <p class="text-gray-400 text-sm mt-1">Applied: ${date}</p>
                             </div>
                         </div>
                         
                         <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                            <h4 class="text-sm font-medium text-dark-700 mb-1">Your Application Reason:</h4>
-                            <p class="text-gray-600 text-sm">${req.reason}</p>
+                            <h4 class="text-sm font-medium text-dark-700 mb-1">Application Status:</h4>
+                            <p class="text-gray-600 text-sm capitalize">${req.status.replace('_', ' ')}</p>
                         </div>
                         
                         ${req.reviewer_notes ? `

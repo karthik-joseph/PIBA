@@ -152,17 +152,40 @@ document.getElementById('adoption-form').addEventListener('submit', async functi
     btn.innerHTML = '<div class="spinner"></div>';
     errDiv.classList.add('hidden');
     
+    // Map housing_type from form to living_situation choices expected by the API
+    const housingMap = {
+        'apartment': 'apartment',
+        'house': 'house_with_yard',
+        'villa': 'house_with_yard',
+        'other': 'other',
+    };
+    // Map pet_experience from form to experience_level choices expected by the API
+    const experienceMap = {
+        'none': 'first_time',
+        'some': 'some',
+        'current': 'experienced',
+        'experienced': 'professional',
+    };
+
     const payload = {
         pet_id: {{ pet.id }},
-        applicant_name: formData.get('applicant_name'),
-        applicant_phone: formData.get('applicant_phone'),
-        applicant_address: formData.get('applicant_address'),
-        housing_type: formData.get('housing_type'),
-        household_members: parseInt(formData.get('household_members')),
+        reason: formData.get('reason') || '',
+        living_situation: housingMap[formData.get('housing_type')] || 'other',
+        living_situation_details: formData.get('applicant_address') || '',
+        household_members: parseInt(formData.get('household_members')) || 1,
         has_children: formData.get('has_children') === 'yes',
-        pet_experience: formData.get('pet_experience'),
-        reason: formData.get('reason'),
-        additional_info: formData.get('additional_info'),
+        children_ages: '',
+        has_other_pets: false,
+        other_pets_description: '',
+        experience_level: experienceMap[formData.get('pet_experience')] || 'some',
+        experience_description: formData.get('additional_info') || '',
+        daily_hours_alone: 0,
+        veterinarian_name: '',
+        veterinarian_phone: '',
+        references: [],
+        agrees_to_home_visit: true,
+        agrees_to_followup: true,
+        agrees_to_return_policy: true,
     };
     
     try {

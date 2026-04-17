@@ -67,35 +67,45 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-gray-500 mb-1">Full Name</p>
-                        <p class="font-medium text-dark-800">{{ adoption_request.applicant_name }}</p>
+                        <p class="font-medium text-dark-800">{{ adoption_request.applicant.get_full_name|default:adoption_request.applicant.username }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 mb-1">Phone</p>
-                        <p class="font-medium text-dark-800">{{ adoption_request.applicant_phone }}</p>
+                        <p class="font-medium text-dark-800">{{ adoption_request.applicant.phone_number|default:"Not provided" }}</p>
                     </div>
                 </div>
                 <div>
-                    <p class="text-gray-500 mb-1">Address</p>
-                    <p class="font-medium text-dark-800">{{ adoption_request.applicant_address }}</p>
+                    <p class="text-gray-500 mb-1">Address / Living Situation Details</p>
+                    <p class="font-medium text-dark-800">{{ adoption_request.living_situation_details|default:"Not provided" }}</p>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-gray-500 mb-1">Housing Type</p>
-                        <p class="font-medium text-dark-800 capitalize">{{ adoption_request.housing_type }}</p>
+                        <p class="font-medium text-dark-800 capitalize">{{ adoption_request.get_living_situation_display }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500 mb-1">Household Members</p>
                         <p class="font-medium text-dark-800">{{ adoption_request.household_members }}</p>
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-500 mb-1">Has Children</p>
+                        <p class="font-medium text-dark-800">{{ adoption_request.has_children|yesno:"Yes,No" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 mb-1">Experience Level</p>
+                        <p class="font-medium text-dark-800">{{ adoption_request.get_experience_level_display }}</p>
+                    </div>
+                </div>
                 <div>
-                    <p class="text-gray-500 mb-1">Reason</p>
+                    <p class="text-gray-500 mb-1">Reason for Adoption</p>
                     <p class="text-dark-800 whitespace-pre-line bg-gray-50 p-3 rounded-xl">{{ adoption_request.reason }}</p>
                 </div>
-                {% if adoption_request.additional_info %}
+                {% if adoption_request.experience_description %}
                 <div>
                     <p class="text-gray-500 mb-1">Additional Info</p>
-                    <p class="text-dark-800 bg-gray-50 p-3 rounded-xl">{{ adoption_request.additional_info }}</p>
+                    <p class="text-dark-800 bg-gray-50 p-3 rounded-xl">{{ adoption_request.experience_description }}</p>
                 </div>
                 {% endif %}
             </div>
