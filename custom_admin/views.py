@@ -4,6 +4,8 @@ from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+import os
+from PIL import Image
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -353,6 +355,25 @@ class AdminPetFeatureAPIView(APIView):
         })
 
 
+def validate_image_upload(image_file):
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+    ext = os.path.splitext(image_file.name)[1].lower()
+    
+    if ext not in allowed_extensions:
+        return False, f"Invalid file extension. Allowed extensions are: {', '.join(allowed_extensions)}"
+        
+    if image_file.name.count('.') > 1:
+        return False, "Files with multiple extensions are not allowed for security reasons."
+        
+    try:
+        img = Image.open(image_file)
+        img.verify()
+        image_file.seek(0)
+    except Exception:
+        return False, "Invalid image format or corrupted file."
+        
+    return True, ""
+
 class AdminPetDetailAPIView(APIView):
     """API endpoint for pet detail read/update/delete (admin CRUD)."""
 
@@ -434,10 +455,16 @@ class AdminPetDetailAPIView(APIView):
         if 'seller' in data and data['seller']:
             pet.seller = get_object_or_404(SellerProfile, pk=data['seller'])
 
+        # Pre-validate image before saving changes
+        image_file = request.FILES.get('primary_image')
+        if image_file:
+            is_valid, error_msg = validate_image_upload(image_file)
+            if not is_valid:
+                return Response({'error': error_msg}, status=400)
+
         pet.save()
 
         # Handle image upload
-        image_file = request.FILES.get('primary_image')
         if image_file:
             from pets.models import PetImage
             PetImage.objects.filter(pet=pet, is_primary=True).delete()
@@ -488,6 +515,12 @@ class AdminPetCreateAPIView(APIView):
         if data.get('listing_type') == 'adoption':
             price = 0
 
+        image_file = request.FILES.get('primary_image')
+        if image_file:
+            is_valid, error_msg = validate_image_upload(image_file)
+            if not is_valid:
+                return Response({'error': error_msg}, status=400)
+
         pet = Pet(
             name=data['name'],
             category=category,
@@ -511,7 +544,6 @@ class AdminPetCreateAPIView(APIView):
         )
         pet.save()
 
-        image_file = request.FILES.get('primary_image')
         if image_file:
             from pets.models import PetImage
             PetImage.objects.create(pet=pet, image=image_file, is_primary=True)

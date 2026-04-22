@@ -135,8 +135,9 @@
                 
                 <div class="mt-5 pt-4 border-t border-gray-100">
                     <label for="primary-image" class="block text-sm font-medium text-dark-700 mb-1.5">Primary Image</label>
-                    <input type="file" name="primary_image" id="primary-image" accept="image/*"
+                    <input type="file" name="primary_image" id="primary-image" accept=".jpg,.jpeg,.png,.gif,.webp"
                            class="block w-full text-sm text-gray-700 border border-gray-200 rounded-xl px-3 py-2.5 cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:border-primary-500 transition relative z-20">
+                    <p class="text-xs text-gray-400 mt-1.5">Only JPG, PNG, GIF, and WEBP files are allowed.</p>
                     {% if pet.primary_image_url and pet.primary_image_url != '/static/images/placeholder/default_pet_image.png' %}
                         <p class="text-xs text-gray-500 mt-2">Current Image: <a href="{{ pet.primary_image_url }}" target="_blank" class="text-primary-600 hover:underline">View</a></p>
                     {% endif %}
