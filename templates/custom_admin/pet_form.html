@@ -20,10 +20,7 @@
 
     <!-- Form Card -->
     <div class="admin-card p-6">
-        <div id="form-error" class="hidden mb-5 bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-xl flex items-center gap-2">
-            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
-            <span id="form-error-text"></span>
-        </div>
+        
 
         <form id="pet-form" enctype="multipart/form-data">
             {% csrf_token %}
@@ -141,6 +138,10 @@
                     {% if pet.primary_image_url and pet.primary_image_url != '/static/images/placeholder/default_pet_image.png' %}
                         <p class="text-xs text-gray-500 mt-2">Current Image: <a href="{{ pet.primary_image_url }}" target="_blank" class="text-primary-600 hover:underline">View</a></p>
                     {% endif %}
+                    <div id="form-error" class="hidden mb-5 bg-red-50 border border-red-200 text-red-600 text-sm p-4 rounded-xl flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span id="form-error-text"></span>
+        </div>
                 </div>
             </div>
 
