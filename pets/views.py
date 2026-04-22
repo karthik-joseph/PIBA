@@ -21,6 +21,7 @@ from .serializers import (
 )
 from .filters import PetFilter
 from users.permissions import IsSeller, IsVerifiedSeller, IsSellerOwnerOrAdmin
+from custom_admin.views import validate_image_upload
 
 
 # ============ API Views ============
@@ -207,6 +208,15 @@ class PetImageUploadAPIView(APIView):
                 {'error': 'No images provided.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
+        # Validate all images before processing
+        for image in images:
+            is_valid, error_msg = validate_image_upload(image)
+            if not is_valid:
+                return Response(
+                    {'error': f'Image "{image.name}" failed validation: {error_msg}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         
         created_images = []
         for i, image in enumerate(images):

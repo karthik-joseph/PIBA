@@ -199,7 +199,7 @@
                 <i data-lucide="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
                 <p class="text-gray-600 font-medium">Upload pet images</p>
                 <p class="text-sm text-gray-400 mt-1">PNG, JPG up to 5MB each</p>
-                <input type="file" name="images" multiple accept="image/*" class="hidden" id="image-input" onchange="previewImages(this)">
+                <input type="file" name="images" multiple accept=".jpg,.jpeg,.png,.gif,.webp" class="hidden" id="image-input" onchange="previewImages(this)">
                 <button type="button" onclick="document.getElementById('image-input').click()"
                         class="mt-4 bg-primary-50 hover:bg-primary-100 text-primary-700 px-6 py-2 rounded-xl font-medium transition">
                     Choose Files

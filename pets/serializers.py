@@ -61,7 +61,7 @@ class PetListSerializer(serializers.ModelSerializer):
             'breed', 'breed_name', 'age_display', 'gender', 'price',
             'listing_type', 'status', 'is_vaccinated', 'is_featured',
             'primary_image_url', 'seller_name', 'seller_city',
-            'views_count', 'created_at'
+            'views_count', 'created_at', 'is_approved'
         ]
 
 
@@ -98,10 +98,12 @@ class PetDetailSerializer(serializers.ModelSerializer):
 class PetCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating pet listings."""
     
+    slug = serializers.CharField(read_only=True)
+    
     class Meta:
         model = Pet
         fields = [
-            'category', 'breed', 'name', 'age_years', 'age_months',
+            'slug', 'category', 'breed', 'name', 'age_years', 'age_months',
             'gender', 'color', 'weight', 'description',
             'health_status', 'is_vaccinated', 'is_neutered',
             'health_certificate', 'price', 'listing_type'
