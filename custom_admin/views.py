@@ -394,17 +394,34 @@ class AdminPetDetailAPIView(APIView):
         pet = get_object_or_404(Pet, pk=pk)
         data = request.data
 
-        fields = [
-            'name', 'price', 'listing_type', 'status', 'gender',
-            'age_years', 'age_months', 'color', 'weight', 'description',
-            'health_status', 'is_vaccinated', 'is_neutered',
-            'is_approved', 'is_featured', 'is_active',
-        ]
-        for field in fields:
+        def str_to_bool(v):
+            if isinstance(v, bool):
+                return v
+            return str(v).lower() in ('true', '1', 't', 'y', 'yes')
+
+        # Map simple fields
+        string_fields = ['name', 'listing_type', 'status', 'gender', 'color', 'description', 'health_status']
+        for field in string_fields:
             if field in data:
                 setattr(pet, field, data[field])
 
-        if 'category' in data:
+        # Handle numeric fields (empty string from FormData -> None/0)
+        if 'price' in data:
+            pet.price = data['price'] or 0
+        if 'age_years' in data:
+            pet.age_years = int(data['age_years'] or 0)
+        if 'age_months' in data:
+            pet.age_months = int(data['age_months'] or 0)
+        if 'weight' in data:
+            pet.weight = float(data['weight']) if data['weight'] else None
+
+        # Handle booleans
+        bool_fields = ['is_vaccinated', 'is_neutered', 'is_approved', 'is_featured', 'is_active']
+        for field in bool_fields:
+            if field in data:
+                setattr(pet, field, str_to_bool(data[field]))
+
+        if 'category' in data and data['category']:
             pet.category = get_object_or_404(PetCategory, pk=data['category'])
         if 'breed' in data:
             if data['breed']:
@@ -414,10 +431,18 @@ class AdminPetDetailAPIView(APIView):
                     pet.breed = None
             else:
                 pet.breed = None
-        if 'seller' in data:
+        if 'seller' in data and data['seller']:
             pet.seller = get_object_or_404(SellerProfile, pk=data['seller'])
 
         pet.save()
+
+        # Handle image upload
+        image_file = request.FILES.get('primary_image')
+        if image_file:
+            from pets.models import PetImage
+            PetImage.objects.filter(pet=pet, is_primary=True).delete()
+            PetImage.objects.create(pet=pet, image=image_file, is_primary=True)
+
         return Response({'message': 'Pet updated successfully.'})
 
     def delete(self, request, pk):
@@ -433,7 +458,10 @@ class AdminPetCreateAPIView(APIView):
 
     def post(self, request):
         data = request.data
-        required = ['name', 'category', 'seller', 'price']
+        required = ['name', 'category', 'seller']
+        if data.get('listing_type') != 'adoption':
+            required.append('price')
+
         for field in required:
             if not data.get(field):
                 return Response({'error': f'{field} is required.'}, status=400)
@@ -451,28 +479,43 @@ class AdminPetCreateAPIView(APIView):
             except Breed.DoesNotExist:
                 pass
 
+        def str_to_bool(v):
+            if isinstance(v, bool):
+                return v
+            return str(v).lower() in ('true', '1', 't', 'y', 'yes')
+
+        price = data.get('price', 0)
+        if data.get('listing_type') == 'adoption':
+            price = 0
+
         pet = Pet(
             name=data['name'],
             category=category,
             seller=seller,
             breed=breed,
-            price=data['price'],
+            price=price or 0,
             listing_type=data.get('listing_type', 'sale'),
             status=data.get('status', 'available'),
             gender=data.get('gender', 'unknown'),
-            age_years=data.get('age_years', 0),
-            age_months=data.get('age_months', 0),
+            age_years=int(data.get('age_years') or 0),
+            age_months=int(data.get('age_months') or 0),
             color=data.get('color', ''),
             weight=data.get('weight') or None,
             description=data.get('description', ''),
             health_status=data.get('health_status', 'good'),
-            is_vaccinated=data.get('is_vaccinated', False),
-            is_neutered=data.get('is_neutered', False),
-            is_approved=data.get('is_approved', False),
-            is_featured=data.get('is_featured', False),
-            is_active=data.get('is_active', True),
+            is_vaccinated=str_to_bool(data.get('is_vaccinated', False)),
+            is_neutered=str_to_bool(data.get('is_neutered', False)),
+            is_approved=str_to_bool(data.get('is_approved', False)),
+            is_featured=str_to_bool(data.get('is_featured', False)),
+            is_active=str_to_bool(data.get('is_active', True)),
         )
         pet.save()
+
+        image_file = request.FILES.get('primary_image')
+        if image_file:
+            from pets.models import PetImage
+            PetImage.objects.create(pet=pet, image=image_file, is_primary=True)
+
         return Response({'message': 'Pet created.', 'id': pet.id}, status=201)
 
 

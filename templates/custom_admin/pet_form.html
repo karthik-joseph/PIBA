@@ -132,6 +132,15 @@
                                   placeholder="Describe the pet's personality, behaviour, story...">{{ pet.description|default:'' }}</textarea>
                     </div>
                 </div>
+                
+                <div class="mt-4 relative z-10">
+                    <label class="block text-sm font-medium text-dark-700 mb-1.5">Primary Image</label>
+                    <input type="file" name="primary_image" id="primary-image" accept="image/*"
+                           class="block w-full text-sm text-gray-700 border border-gray-200 rounded-xl px-3 py-2.5 cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:border-primary-500 transition relative z-20">
+                    {% if pet.primary_image_url and pet.primary_image_url != '/static/images/placeholder/default_pet_image.png' %}
+                        <p class="text-xs text-gray-500 mt-2">Current Image: <a href="{{ pet.primary_image_url }}" target="_blank" class="text-primary-600 hover:underline">View</a></p>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- Section: Health -->
@@ -293,6 +302,26 @@ async function loadSellers() {
     } catch(e) { console.error(e); }
 }
 
+const listingTypeSelect = document.getElementById('pet-listing-type');
+const priceInput = document.getElementById('pet-price');
+
+function togglePriceField() {
+    if (listingTypeSelect.value === 'adoption') {
+        priceInput.disabled = true;
+        priceInput.value = '0';
+        priceInput.classList.add('bg-gray-100');
+    } else {
+        priceInput.disabled = false;
+        if (priceInput.value === '0' || priceInput.value === '0.00') {
+            priceInput.value = '';
+        }
+        priceInput.classList.remove('bg-gray-100');
+    }
+}
+
+listingTypeSelect.addEventListener('change', togglePriceField);
+togglePriceField();
+
 // Form submit
 document.getElementById('pet-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -306,34 +335,22 @@ document.getElementById('pet-form').addEventListener('submit', async function(e)
     errorDiv.classList.add('hidden');
 
     const form = new FormData(this);
-    const payload = {
-        name: form.get('name'),
-        category: parseInt(form.get('category')),
-        seller: parseInt(form.get('seller')),
-        price: parseFloat(form.get('price')),
-        listing_type: form.get('listing_type'),
-        status: form.get('status'),
-        gender: form.get('gender'),
-        age_years: parseInt(form.get('age_years')) || 0,
-        age_months: parseInt(form.get('age_months')) || 0,
-        color: form.get('color') || '',
-        weight: form.get('weight') ? parseFloat(form.get('weight')) : null,
-        description: form.get('description') || '',
-        health_status: form.get('health_status'),
-        is_vaccinated: document.getElementById('is-vaccinated').checked,
-        is_neutered: document.getElementById('is-neutered').checked,
-        is_approved: document.getElementById('is-approved').checked,
-        is_featured: document.getElementById('is-featured').checked,
-        is_active: document.getElementById('is-active').checked,
-    };
-    if (form.get('breed')) payload.breed = parseInt(form.get('breed'));
+    form.set('is_vaccinated', document.getElementById('is-vaccinated').checked);
+    form.set('is_neutered', document.getElementById('is-neutered').checked);
+    form.set('is_approved', document.getElementById('is-approved').checked);
+    form.set('is_featured', document.getElementById('is-featured').checked);
+    form.set('is_active', document.getElementById('is-active').checked);
+
+    if (listingTypeSelect.value === 'adoption') {
+        form.set('price', 0);
+    }
 
     try {
         let response;
         if (PET_ID) {
-            response = await API.patch(`/admin-panel/api/pets/${PET_ID}/detail/`, payload);
+            response = await API.fetch(`/admin-panel/api/pets/${PET_ID}/detail/`, { method: 'PATCH', body: form });
         } else {
-            response = await API.post('/admin-panel/api/pets/create/', payload);
+            response = await API.fetch('/admin-panel/api/pets/create/', { method: 'POST', body: form });
         }
         const data = await response.json();
 
