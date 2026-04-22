@@ -36,7 +36,7 @@
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Pet Name <span class="text-red-500">*</span></label>
+                        <label for="pet-name" class="block text-sm font-medium text-dark-700 mb-1.5">Pet Name <span class="text-red-500">*</span></label>
                         <input type="text" name="name" id="pet-name" required
                                value="{{ pet.name|default:'' }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition text-sm"
@@ -60,7 +60,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Seller <span class="text-red-500">*</span></label>
+                        <label for="pet-seller" class="block text-sm font-medium text-dark-700 mb-1.5">Seller <span class="text-red-500">*</span></label>
                         <select name="seller" id="pet-seller" required
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
                             <option value="">Select seller...</option>
@@ -68,7 +68,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Listing Type</label>
+                        <label for="pet-listing-type" class="block text-sm font-medium text-dark-700 mb-1.5">Listing Type</label>
                         <select name="listing_type" id="pet-listing-type"
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
                             <option value="sale" {% if pet.listing_type == 'sale' %}selected{% endif %}>For Sale</option>
@@ -77,7 +77,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Price (₹) <span class="text-red-500">*</span></label>
+                        <label for="pet-price" class="block text-sm font-medium text-dark-700 mb-1.5">Price (₹) <span class="text-red-500">*</span></label>
                         <input type="number" name="price" id="pet-price" required min="0" step="0.01"
                                value="{{ pet.price|default:'' }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition text-sm"
@@ -85,7 +85,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Gender</label>
+                        <label for="pet-gender" class="block text-sm font-medium text-dark-700 mb-1.5">Gender</label>
                         <select name="gender" id="pet-gender"
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
                             <option value="male" {% if pet.gender == 'male' %}selected{% endif %}>Male</option>
@@ -95,46 +95,46 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Age (Years)</label>
-                        <input type="number" name="age_years" min="0" max="30"
+                        <label for="pet-age-years" class="block text-sm font-medium text-dark-700 mb-1.5">Age (Years)</label>
+                        <input type="number" name="age_years" id="pet-age-years" min="0" max="30"
                                value="{{ pet.age_years|default:0 }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
                                placeholder="0">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Age (Months)</label>
-                        <input type="number" name="age_months" min="0" max="11"
+                        <label for="pet-age-months" class="block text-sm font-medium text-dark-700 mb-1.5">Age (Months)</label>
+                        <input type="number" name="age_months" id="pet-age-months" min="0" max="11"
                                value="{{ pet.age_months|default:0 }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
                                placeholder="0">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Color</label>
-                        <input type="text" name="color" value="{{ pet.color|default:'' }}"
+                        <label for="pet-color" class="block text-sm font-medium text-dark-700 mb-1.5">Color</label>
+                        <input type="text" name="color" id="pet-color" value="{{ pet.color|default:'' }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
                                placeholder="e.g. Golden, Black & White">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Weight (kg)</label>
-                        <input type="number" name="weight" step="0.1" min="0"
+                        <label for="pet-weight" class="block text-sm font-medium text-dark-700 mb-1.5">Weight (kg)</label>
+                        <input type="number" name="weight" id="pet-weight" step="0.1" min="0"
                                value="{{ pet.weight|default:'' }}"
                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm"
                                placeholder="e.g. 5.2">
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Description</label>
-                        <textarea name="description" rows="4"
+                        <label for="pet-description" class="block text-sm font-medium text-dark-700 mb-1.5">Description</label>
+                        <textarea name="description" id="pet-description" rows="4"
                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm resize-none"
                                   placeholder="Describe the pet's personality, behaviour, story...">{{ pet.description|default:'' }}</textarea>
                     </div>
                 </div>
                 
-                <div class="mt-4 relative z-10">
-                    <label class="block text-sm font-medium text-dark-700 mb-1.5">Primary Image</label>
+                <div class="mt-5 pt-4 border-t border-gray-100">
+                    <label for="primary-image" class="block text-sm font-medium text-dark-700 mb-1.5">Primary Image</label>
                     <input type="file" name="primary_image" id="primary-image" accept="image/*"
                            class="block w-full text-sm text-gray-700 border border-gray-200 rounded-xl px-3 py-2.5 cursor-pointer bg-white hover:bg-gray-50 focus:outline-none focus:border-primary-500 transition relative z-20">
                     {% if pet.primary_image_url and pet.primary_image_url != '/static/images/placeholder/default_pet_image.png' %}
@@ -151,8 +151,8 @@
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Health Status</label>
-                        <select name="health_status"
+                        <label for="pet-health-status" class="block text-sm font-medium text-dark-700 mb-1.5">Health Status</label>
+                        <select name="health_status" id="pet-health-status"
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
                             <option value="excellent" {% if pet.health_status == 'excellent' %}selected{% endif %}>Excellent</option>
                             <option value="good" {% if not pet or pet.health_status == 'good' %}selected{% endif %}>Good</option>
@@ -184,8 +184,8 @@
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-dark-700 mb-1.5">Status</label>
-                        <select name="status"
+                        <label for="pet-status" class="block text-sm font-medium text-dark-700 mb-1.5">Status</label>
+                        <select name="status" id="pet-status"
                                 class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary-500 outline-none transition text-sm bg-white">
                             <option value="available" {% if not pet or pet.status == 'available' %}selected{% endif %}>Available</option>
                             <option value="reserved" {% if pet.status == 'reserved' %}selected{% endif %}>Reserved</option>
